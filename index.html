@@ -119,6 +119,7 @@ section.view.on{display:block}
 
 .seg{display:flex;gap:6px;margin:.4rem 0}.seg button{flex:1;border:1px solid #E2D6C3;background:#F5EEE3;border-radius:10px;padding:.55rem}.seg button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 .err{color:#A0381C;font-size:.85rem;min-height:1.2em}
+.bank{background:#F5EEE3;border:1px solid #E2D6C3;border-radius:14px;padding:14px;margin-top:10px}.bank .r{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed #E2D6C3;flex-wrap:wrap}.bank .r:last-child{border:0}.bank code{font-family:inherit;font-weight:700;direction:ltr;unicode-bidi:embed}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fff;padding:.7rem 1.1rem;border-radius:12px;transition:.25s;z-index:60;font-size:.92rem}
 .toast.on{transform:translateX(-50%) translateY(0)}
 footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);font-size:.85rem}
@@ -221,14 +222,26 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
   <div class="panel" style="margin-bottom:40px">
     <strong>إدارة الاشتراك</strong>
     <p class="meta" id="subState">لا يوجد اشتراك فعّال.</p>
-    <p class="meta">الدفع حالياً بالتحويل البنكي، ويُفعَّل الاشتراك بعد التأكد من التحويل.</p>
-    
+    <div id="payBox"></div>
   </div>
 </section>
 
 <!-- ADMIN -->
 <section class="view" id="v-admin">
   <h2 class="h2">لوحة الإدارة</h2>
+  <form class="panel" id="bankForm" style="margin-bottom:18px">
+    <strong>بيانات التحويل البنكي</strong>
+    <p class="meta" style="margin:.2rem 0 0">تظهر لأصحاب المتاجر عند طلب الاشتراك.</p>
+    <div class="two">
+      <div><label for="bBank">اسم البنك</label><input id="bBank" required></div>
+      <div><label for="bHolder">اسم صاحب الحساب</label><input id="bHolder" required></div>
+    </div>
+    <div class="two">
+      <div><label for="bIban">رقم الآيبان</label><input id="bIban" required dir="ltr" placeholder="SA00 0000 0000 0000 0000 0000"></div>
+      <div><label for="bWa">واتساب استقبال الإيصالات</label><input id="bWa" required dir="ltr" inputmode="tel" placeholder="05xxxxxxxx"></div>
+    </div>
+    <button class="btn teal" style="margin-top:12px">حفظ البيانات</button>
+  </form>
   <p class="lead">طلبات الاشتراك: بعد استلام المبلغ اضغط «تفعيل».</p>
   <div id="adminReqs"></div>
   <h2 class="h2" style="font-size:1.2rem">المشتركون</h2>
@@ -286,7 +299,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, query, orderBy, limit, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, query, orderBy, limit, serverTimestamp, writeBatch, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ===== ضع إعدادات مشروع Firebase هنا ===== */
 const firebaseConfig = {
@@ -299,6 +312,10 @@ const firebaseConfig = {
 };
 /* بريد حساب الإدارة (نفس البريد في قواعد Firestore) */
 const ADMIN_EMAIL = "sada.ugc0@gmail.com";
+/* بيانات التحويل البنكي: تُعبّأ من صفحة الإدارة */
+let BANK = { bank:"", holder:"", iban:"", wa:"" };
+/* الباقات: السعر بالريال والمدة بالأيام */
+const PLANS = { "شهري":{price:99,days:30}, "ربع سنوي":{price:249,days:90}, "سنوي":{price:899,days:365} };
 /* ========================================= */
 
 const app = initializeApp(firebaseConfig);
@@ -309,7 +326,7 @@ const CATS=["عقارات","عود وعطور","تقنية","مطاعم ومقا
 const CITIES=["الرياض","جدة","مكة","المدينة","الدمام","الخبر","أبها","تبوك","الطائف"];
 const COLORS=[["#5E6B48","#A9B58C"]];
 
-let user=null, role=null, isSub=false, subPlan="", isAdmin=false;
+let user=null, role=null, isSub=false, subPlan="", subUntil=null, pending=null, isAdmin=false;
 let creators=[], jobs=[], activeCat="", dashAvail=1, myCreator=null;
 
 const $=s=>document.querySelector(s);
@@ -415,7 +432,9 @@ async function renderJobs(){
 
 function renderSub(){
   $("#subTag").hidden=!isSub;
-  $("#subState").textContent=!user?"سجّل دخولك لإدارة اشتراكك.":isSub?`اشتراكك فعّال — الباقة: ${subPlan}.`:"لا يوجد اشتراك فعّال.";
+  const fmt=d=>d?d.toLocaleDateString("ar-SA-u-ca-gregory",{year:"numeric",month:"long",day:"numeric"}):"";
+  $("#subState").textContent=!user?"سجّل دخولك لإدارة اشتراكك.":isSub?`اشتراكك فعّال — الباقة: ${subPlan} — ينتهي في ${fmt(subUntil)}.`:pending?`طلبك للباقة «${pending}» قيد المراجعة — حوّل المبلغ وأرسل الإيصال.`:subUntil?`انتهى اشتراكك في ${fmt(subUntil)} — اختر باقة للتجديد.`:"لا يوجد اشتراك فعّال.";
+  $("#payBox").innerHTML=(user&&pending&&!isSub)?payHTML(pending):(!user?"":'<p class="meta">الدفع بالتحويل البنكي، ويُفعَّل الاشتراك بعد التأكد من التحويل.</p>');
   $("#authBtn").textContent=user?"خروج":"دخول";
   $("#adminLink").hidden=!isAdmin;
 }
@@ -443,15 +462,40 @@ async function loadMine(){
   }
 }
 
+async function loadBank(){
+  try{const d=await getDoc(doc(db,"settings","payment"));if(d.exists())BANK={...BANK,...d.data()}}catch(e){}
+  if($("#bBank")){$("#bBank").value=BANK.bank||"";$("#bHolder").value=BANK.holder||"";$("#bIban").value=BANK.iban||"";$("#bWa").value=BANK.wa||""}
+}
+function payHTML(plan){
+  if(!BANK.iban)return '<p class="meta">بيانات التحويل غير متوفرة حالياً — تواصل مع الإدارة.</p>';
+  const p=PLANS[plan]||{price:"—"};
+  const msg=`السلام عليكم، حوّلت مبلغ اشتراك منصة صدى\nالباقة: ${plan} (${p.price} ريال)\nبريد الحساب: ${user?user.email:""}\nمرفق الإيصال.`;
+  const wa=String(BANK.wa).replace(/\D/g,"").replace(/^05/,"9665");
+  return `<div class="bank">
+    <strong>حوّل ${p.price} ريال (باقة ${esc(plan)}) إلى الحساب التالي:</strong>
+    <div class="r"><span>البنك</span><span>${esc(BANK.bank)}</span></div>
+    <div class="r"><span>اسم صاحب الحساب</span><span>${esc(BANK.holder)}</span></div>
+    <div class="r"><span>الآيبان</span><code>${esc(BANK.iban)}</code></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn ghost" type="button" data-copyiban>نسخ الآيبان</button>
+      <a class="contact wa" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">أرسل الإيصال على واتساب · ${esc(BANK.wa)}</a>
+    </div>
+    <p class="meta" style="margin:.6rem 0 0">يُفعَّل اشتراكك بعد التأكد من وصول المبلغ.</p>
+  </div>`;
+}
+
 /* ---------- admin ---------- */
 async function loadAdmin(){
   if(!isAdmin)return;
+  await loadBank();
   const reqs=await getDocs(collection(db,"subRequests"));
-  $("#adminReqs").innerHTML=reqs.empty?'<div class="panel meta">لا توجد طلبات.</div>':reqs.docs.map(d=>{const r=d.data();return `<div class="job"><div class="top"><div><strong>${esc(r.email)}</strong><div class="meta">الباقة: ${esc(r.plan)}</div></div>
+  $("#adminReqs").innerHTML=reqs.empty?'<div class="panel meta">لا توجد طلبات.</div>':reqs.docs.map(d=>{const r=d.data();return `<div class="job"><div class="top"><div><strong>${esc(r.email)}</strong><div class="meta">الباقة: ${esc(r.plan)} · ${(PLANS[r.plan]||{}).price||"—"} ريال</div></div>
     <div style="display:flex;gap:6px"><button class="btn teal" data-activate="${d.id}" data-plan-name="${esc(r.plan)}" data-email="${esc(r.email)}">تفعيل</button><button class="btn ghost" data-rejreq="${d.id}">حذف</button></div></div></div>`}).join("");
   const subs=await getDocs(collection(db,"subscribers"));
-  $("#adminSubs").innerHTML=subs.empty?'<div class="panel meta">لا يوجد مشتركون.</div>':subs.docs.map(d=>{const r=d.data();return `<div class="job"><div class="top"><div><strong>${esc(r.email)}</strong><div class="meta">${esc(r.plan)} · ${r.active?"فعّال":"موقوف"}</div></div>
-    <button class="btn ghost" data-togglesub="${d.id}" data-active="${r.active?1:0}">${r.active?"إيقاف":"إعادة تفعيل"}</button></div></div>`}).join("");
+  $("#adminSubs").innerHTML=subs.empty?'<div class="panel meta">لا يوجد مشتركون.</div>':subs.docs.map(d=>{const r=d.data();const u=r.until?r.until.toDate():null;const live=r.active&&u&&u>new Date();
+    return `<div class="job"><div class="top"><div><strong>${esc(r.email)}</strong><div class="meta">${esc(r.plan)} · ${live?"فعّال حتى "+u.toLocaleDateString("ar-SA-u-ca-gregory"):(r.active?"منتهي":"موقوف")}</div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn teal" data-renew="${d.id}" data-plan-name="${esc(r.plan)}">تجديد ${esc(r.plan)}</button>
+    <button class="btn ghost" data-togglesub="${d.id}" data-active="${r.active?1:0}">${r.active?"إيقاف":"إعادة تفعيل"}</button></div></div></div>`}).join("");
 }
 
 /* ---------- auth ---------- */
@@ -488,12 +532,14 @@ async function submitAuth(e){
 }
 
 onAuthStateChanged(auth, async u=>{
-  user=u; role=null; isSub=false; subPlan=""; isAdmin=!!(u&&u.email&&u.email.toLowerCase()===ADMIN_EMAIL.toLowerCase());
+  user=u; role=null; isSub=false; subPlan=""; subUntil=null; pending=null; isAdmin=!!(u&&u.email&&u.email.toLowerCase()===ADMIN_EMAIL.toLowerCase());
   if(u){
     try{const d=await getDoc(doc(db,"users",u.uid));role=d.exists()?d.data().role:null}catch(e){}
-    try{const s=await getDoc(doc(db,"subscribers",u.uid));if(s.exists()&&s.data().active){isSub=true;subPlan=s.data().plan||""}}catch(e){}
+    try{const s=await getDoc(doc(db,"subscribers",u.uid));if(s.exists()){const d=s.data();subUntil=d.until?d.until.toDate():null;subPlan=d.plan||"";isSub=!!(d.active&&subUntil&&subUntil>new Date())}}catch(e){}
+    try{const r=await getDoc(doc(db,"subRequests",u.uid));if(r.exists())pending=r.data().plan}catch(e){}
     await loadMine();
   }
+  await loadBank();
   renderSub();renderDash();renderJobs();
   if(location.hash==="#admin")loadAdmin();
 });
@@ -528,9 +574,10 @@ document.addEventListener("click",async e=>{
   const g=t.closest("[data-go]"); if(g){location.hash=g.dataset.go;return}
   const p=t.closest("[data-plan]"); if(p){
     if(!user){authMode="signup";authRole="store";openAuth();return}
-    if(isSub){toast("اشتراكك فعّال بالفعل");return}
+    if(isSub){toast("اشتراكك فعّال حتى "+subUntil.toLocaleDateString("ar-SA-u-ca-gregory"));return}
     try{await setDoc(doc(db,"subRequests",user.uid),{plan:p.dataset.plan,email:user.email,createdAt:serverTimestamp()});
-      toast("وصلنا طلب اشتراكك — سنفعّله بعد التحويل")}catch(err){toast(arErr(err))}
+      pending=p.dataset.plan;renderSub();$("#payBox").scrollIntoView({behavior:"smooth",block:"center"});
+      toast("وصلنا طلبك — حوّل المبلغ وأرسل الإيصال")}catch(err){toast(arErr(err))}
     return}
   const jc=t.closest("[data-jobcontact]"); if(jc){
     try{const d=await getDoc(doc(db,"jobs",jc.dataset.jobcontact,"private","contact"));const wa=d.exists()?d.data().wa:"";
@@ -541,14 +588,27 @@ document.addEventListener("click",async e=>{
     return}
   const ac=t.closest("[data-activate]"); if(ac){
     const b=writeBatch(db);
-    b.set(doc(db,"subscribers",ac.dataset.activate),{active:true,plan:ac.dataset.planName,email:ac.dataset.email,since:serverTimestamp()});
+    const days=(PLANS[ac.dataset.planName]||{days:30}).days;
+    b.set(doc(db,"subscribers",ac.dataset.activate),{active:true,plan:ac.dataset.planName,email:ac.dataset.email,since:serverTimestamp(),until:Timestamp.fromMillis(Date.now()+days*864e5)});
     b.delete(doc(db,"subRequests",ac.dataset.activate));
     try{await b.commit();toast("تم التفعيل");loadAdmin()}catch(err){toast(arErr(err))}
     return}
+  const rn=t.closest("[data-renew]"); if(rn){
+    try{const ref=doc(db,"subscribers",rn.dataset.renew);const cur=await getDoc(ref);const u=cur.exists()&&cur.data().until?cur.data().until.toMillis():0;
+      const days=(PLANS[rn.dataset.planName]||{days:30}).days;
+      await setDoc(ref,{active:true,until:Timestamp.fromMillis(Math.max(u,Date.now())+days*864e5)},{merge:true});toast("تم التجديد");loadAdmin()}catch(err){toast(arErr(err))}
+    return}
+  if(t.closest("[data-copyiban]")){try{await navigator.clipboard.writeText(BANK.iban.replace(/\s/g,""));toast("تم نسخ الآيبان")}catch(err){toast("انسخ الآيبان يدوياً")}return}
   const rj=t.closest("[data-rejreq]"); if(rj){try{await deleteDoc(doc(db,"subRequests",rj.dataset.rejreq));loadAdmin()}catch(err){toast(arErr(err))}return}
   const ts=t.closest("[data-togglesub]"); if(ts){
     try{await setDoc(doc(db,"subscribers",ts.dataset.togglesub),{active:ts.dataset.active!=="1"},{merge:true});loadAdmin()}catch(err){toast(arErr(err))}
     return}
+});
+
+$("#bankForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const data={bank:$("#bBank").value.trim(),holder:$("#bHolder").value.trim(),iban:$("#bIban").value.trim().toUpperCase(),wa:$("#bWa").value.trim()};
+  try{await setDoc(doc(db,"settings","payment"),data);BANK=data;renderSub();toast("تم حفظ بيانات التحويل")}catch(err){toast(arErr(err))}
 });
 
 $("#jobForm").addEventListener("submit",async e=>{
