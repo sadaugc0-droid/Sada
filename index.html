@@ -120,6 +120,7 @@ section.view.on{display:block}
 .seg{display:flex;gap:6px;margin:.4rem 0}.seg button{flex:1;border:1px solid #E2D6C3;background:#F5EEE3;border-radius:10px;padding:.55rem}.seg button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 .err{color:#A0381C;font-size:.85rem;min-height:1.2em}
 .bank{background:#F5EEE3;border:1px solid #E2D6C3;border-radius:14px;padding:14px;margin-top:10px}.bank .r{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed #E2D6C3;flex-wrap:wrap}.bank .r:last-child{border:0}.bank code{font-family:inherit;font-weight:700;direction:ltr;unicode-bidi:embed}
+.trash{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:12px;border:1px solid #F0C9BF;background:#FDF0EC;color:#A0381C;flex:none}.trash.sure{width:auto;padding:0 .8rem;background:#A0381C;color:#fff;border-color:#A0381C;font-weight:600}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fff;padding:.7rem 1.1rem;border-radius:12px;transition:.25s;z-index:60;font-size:.92rem}
 .toast.on{transform:translateX(-50%) translateY(0)}
 footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);font-size:.85rem}
@@ -245,7 +246,10 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
   <p class="lead">طلبات الاشتراك: بعد استلام المبلغ اضغط «تفعيل».</p>
   <div id="adminReqs"></div>
   <h2 class="h2" style="font-size:1.2rem">المشتركون</h2>
-  <div id="adminSubs" style="padding-bottom:40px"></div>
+  <div id="adminSubs"></div>
+  <h2 class="h2" style="font-size:1.2rem">الأعضاء</h2>
+  <div class="seg" id="memTabs" style="max-width:420px"><button type="button" data-memtab="creator" class="on">صناع المحتوى</button><button type="button" data-memtab="store">أصحاب المتاجر</button></div>
+  <div id="adminMembers" style="padding-bottom:40px"></div>
 </section>
 
 <!-- DASHBOARD -->
@@ -485,9 +489,32 @@ function payHTML(plan){
 }
 
 /* ---------- admin ---------- */
+const trashSvg='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
+let memTab="creator";
+async function loadMembers(){
+  const snap=await getDocs(collection(db,"users"));
+  const subs=await getDocs(collection(db,"subscribers"));
+  const subMap={};subs.docs.forEach(d=>subMap[d.id]=d.data());
+  const list=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.role===memTab);
+  const name=id=>{const c=creators.find(x=>x.id===id);return c?c.name:""};
+  $("#adminMembers").innerHTML=list.length?list.map(u=>{const sb=subMap[u.id];const live=sb&&sb.active&&sb.until&&sb.until.toDate()>new Date();
+    return `<div class="job"><div class="top" style="align-items:center"><div><strong>${esc(name(u.id)||u.email)}</strong>
+      <div class="meta">${esc(u.email)}${memTab==="store"?(live?" · مشترك":" · غير مشترك"):(name(u.id)?" · له ملف منشور":" · بدون ملف")}</div></div>
+      <button class="trash" type="button" data-deluser="${esc(u.id)}" aria-label="حذف ${esc(u.email)}">${trashSvg}</button></div></div>`}).join(""):'<div class="panel meta">لا يوجد أعضاء.</div>';
+}
+async function deleteMember(uid){
+  const jobsSnap=await getDocs(collection(db,"jobs"));
+  for(const j of jobsSnap.docs){ if(j.data().owner===uid){ await deleteDoc(doc(db,"jobs",j.id,"private","contact")).catch(()=>{}); await deleteDoc(doc(db,"jobs",j.id)); } }
+  await deleteDoc(doc(db,"creators",uid,"private","contact")).catch(()=>{});
+  await deleteDoc(doc(db,"creators",uid)).catch(()=>{});
+  await deleteDoc(doc(db,"subscribers",uid)).catch(()=>{});
+  await deleteDoc(doc(db,"subRequests",uid)).catch(()=>{});
+  await deleteDoc(doc(db,"users",uid));
+}
 async function loadAdmin(){
   if(!isAdmin)return;
   await loadBank();
+  loadMembers().catch(e=>console.error(e));
   const reqs=await getDocs(collection(db,"subRequests"));
   $("#adminReqs").innerHTML=reqs.empty?'<div class="panel meta">لا توجد طلبات.</div>':reqs.docs.map(d=>{const r=d.data();return `<div class="job"><div class="top"><div><strong>${esc(r.email)}</strong><div class="meta">الباقة: ${esc(r.plan)} · ${(PLANS[r.plan]||{}).price||"—"} ريال</div></div>
     <div style="display:flex;gap:6px"><button class="btn teal" data-activate="${d.id}" data-plan-name="${esc(r.plan)}" data-email="${esc(r.email)}">تفعيل</button><button class="btn ghost" data-rejreq="${d.id}">حذف</button></div></div></div>`}).join("");
@@ -599,6 +626,12 @@ document.addEventListener("click",async e=>{
       await setDoc(ref,{active:true,until:Timestamp.fromMillis(Math.max(u,Date.now())+days*864e5)},{merge:true});toast("تم التجديد");loadAdmin()}catch(err){toast(arErr(err))}
     return}
   if(t.closest("[data-copyiban]")){try{await navigator.clipboard.writeText(BANK.iban.replace(/\s/g,""));toast("تم نسخ الآيبان")}catch(err){toast("انسخ الآيبان يدوياً")}return}
+  const mt=t.closest("[data-memtab]"); if(mt){memTab=mt.dataset.memtab;document.querySelectorAll("[data-memtab]").forEach(x=>x.classList.toggle("on",x===mt));loadMembers();return}
+  const du=t.closest("[data-deluser]"); if(du){
+    if(!du.classList.contains("sure")){du.classList.add("sure");du.textContent="تأكيد الحذف";setTimeout(()=>{if(du.isConnected){du.classList.remove("sure");du.innerHTML=trashSvg}},4000);return}
+    du.disabled=true;du.textContent="جاري الحذف…";
+    try{await deleteMember(du.dataset.deluser);toast("تم حذف العضو وبياناته");await loadCreators();loadJobs();loadAdmin()}catch(err){toast(arErr(err));du.disabled=false}
+    return}
   const rj=t.closest("[data-rejreq]"); if(rj){try{await deleteDoc(doc(db,"subRequests",rj.dataset.rejreq));loadAdmin()}catch(err){toast(arErr(err))}return}
   const ts=t.closest("[data-togglesub]"); if(ts){
     try{await setDoc(doc(db,"subscribers",ts.dataset.togglesub),{active:ts.dataset.active!=="1"},{merge:true});loadAdmin()}catch(err){toast(arErr(err))}
