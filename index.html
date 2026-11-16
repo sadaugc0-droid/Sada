@@ -121,6 +121,16 @@ section.view.on{display:block}
 .err{color:#A0381C;font-size:.85rem;min-height:1.2em}
 .bank{background:#F5EEE3;border:1px solid #E2D6C3;border-radius:14px;padding:14px;margin-top:10px}.bank .r{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed #E2D6C3;flex-wrap:wrap}.bank .r:last-child{border:0}.bank code{font-family:inherit;font-weight:700;direction:ltr;unicode-bidi:embed}
 .trash{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:12px;border:1px solid #F0C9BF;background:#FDF0EC;color:#A0381C;flex:none}.trash.sure{width:auto;padding:0 .8rem;background:#A0381C;color:#fff;border-color:#A0381C;font-weight:600}
+.camp-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.cfilters{grid-template-columns:repeat(4,minmax(0,1fr))}
+.camp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding-bottom:40px}
+.camp{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:10px}
+.camp .budget{font-size:1.35rem;font-weight:700;color:var(--brand)}.camp .budget small{font-size:.8rem;color:var(--muted);font-weight:500}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tag{font-size:.78rem;padding:.2rem .65rem;border-radius:999px;background:var(--brand-soft);color:var(--brand-d)}.tag.olive{background:#ECEFE3;color:#4A5638}
+.st{font-size:.75rem;padding:.2rem .65rem;border-radius:999px;font-weight:600;white-space:nowrap}.st-open{background:#E3F6EA;color:#17733B}.st-closed{background:#F4E4E0;color:#A0381C}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:.88rem;background:#F5EEE3;border-radius:12px;padding:10px 12px}.kv span{display:block;color:#7A6B58;font-size:.78rem}.kv b{font-weight:600}.kv em{font-style:normal;color:var(--brand);font-size:.78rem;margin-inline-start:4px}
+.chk{display:flex;flex-wrap:wrap;gap:6px}.chk label,label.chk{margin:0;font-weight:500;display:flex;align-items:center;gap:6px;border:1px solid #E2D6C3;background:#F5EEE3;border-radius:10px;padding:.45rem .7rem}.chk input{width:auto}
+@media(max-width:820px){.cfilters{grid-template-columns:1fr 1fr}}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fff;padding:.7rem 1.1rem;border-radius:12px;transition:.25s;z-index:60;font-size:.92rem}
 .toast.on{transform:translateX(-50%) translateY(0)}
 footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);font-size:.85rem}
@@ -135,7 +145,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
     <button class="btn ghost" id="authBtn" style="padding:.4rem .8rem;font-size:.85rem;flex:none">دخول</button>
     <nav class="links">
       <a href="#home" data-v="home">صناع المحتوى</a>
-      <a href="#jobs" data-v="jobs">لوحة الطلبات</a>
+      <a href="#campaigns" data-v="campaigns">الحملات</a>
       <a href="#pricing" data-v="pricing">الباقات</a>
       <a href="#dashboard" data-v="dashboard">لوحة صانع المحتوى</a>
       <a href="#admin" data-v="admin" id="adminLink" hidden>الإدارة</a>
@@ -168,35 +178,26 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
   <div class="grid" id="grid"><div class="empty">جاري التحميل…</div></div>
 </section>
 
-<!-- JOBS -->
-<section class="view" id="v-jobs">
-  <h2 class="h2">لوحة الطلبات المفتوحة</h2>
-  <p class="lead">صاحب المتجر يضع طلبه، وصناع المحتوى المسجلون يراسلونه مباشرة.</p>
-  <div class="jobs-grid">
-    <form class="panel" id="jobForm">
-      <strong>أضف طلبك</strong>
-      <label>المنتج / المتجر</label><input id="jTitle" required placeholder="مثال: محمصة قهوة مختصة">
-      <div class="two">
-        <div><label>التخصص</label><select id="jCat"></select></div>
-        <div><label>المدينة</label><select id="jCity"></select></div>
-      </div>
-      <div class="two">
-        <div><label>الميزانية (ريال)</label><input id="jBudget" type="number" min="50" required placeholder="200"></div>
-        <div><label>عدد الفيديوهات</label><input id="jQty" type="number" min="1" value="1"></div>
-      </div>
-      <label>تفاصيل الإعلان</label><textarea id="jDesc" rows="3" placeholder="مدة الفيديو، الأسلوب، موعد التسليم…"></textarea>
-      <label>واتساب للتواصل (يظهر لصناع المحتوى المسجلين فقط)</label><input id="jWa" required placeholder="05xxxxxxxx" inputmode="tel">
-      <p class="meta" id="jobNote"></p>
-      <button class="btn brand block" style="margin-top:8px">نشر الطلب</button>
-    </form>
-    <div id="jobList"></div>
+<!-- CAMPAIGNS -->
+<section class="view" id="v-campaigns">
+  <div class="camp-head">
+    <div><h2 class="h2">الحملات الإعلانية</h2><p class="lead" style="margin-bottom:8px">أصحاب الإعلانات ينشرون حملاتهم بميزانية محددة، وصناع المحتوى يتقدّمون عليها.</p></div>
+    <button class="btn brand" id="newCamp" type="button">+ حملة جديدة</button>
   </div>
+  <div class="seg" style="max-width:540px"><button type="button" data-ctab="open" class="on">الحملات المفتوحة</button><button type="button" data-ctab="mine" id="tabMine" hidden>حملاتي</button><button type="button" data-ctab="applied" id="tabApplied" hidden>تقديماتي</button></div>
+  <div class="filters cfilters">
+    <select id="cfCat" aria-label="التخصص"><option value="">كل التخصصات</option></select>
+    <select id="cfCity" aria-label="المدينة"><option value="">كل المدن</option></select>
+    <select id="cfPlat" aria-label="المنصة"><option value="">كل المنصات</option></select>
+    <select id="cfBudget" aria-label="الميزانية"><option value="">كل الميزانيات</option><option value="s">أقل من 500 ريال</option><option value="m">500 – 2000 ريال</option><option value="l">أكثر من 2000 ريال</option></select>
+  </div>
+  <div id="campList" class="camp-grid"><div class="empty">جاري التحميل…</div></div>
 </section>
 
 <!-- PRICING -->
 <section class="view" id="v-pricing">
   <h2 class="h2">الباقات</h2>
-  <p class="lead">التصفح مجاني. الاشتراك يفتح أزرار التواصل المباشر مع كل صناع المحتوى ونشر الطلبات.</p>
+  <p class="lead">التصفح مجاني. الاشتراك يفتح أزرار التواصل المباشر مع كل صناع المحتوى ونشر الحملات الإعلانية.</p>
   <div class="plans">
     <div class="panel plan">
       <strong>مجاني</strong><div class="amt">0 <small>ريال</small></div>
@@ -206,7 +207,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
     <div class="panel plan best">
       <span class="tag">الأكثر طلباً</span>
       <strong>شهري</strong><div class="amt">99 <small>ريال / شهر</small></div>
-      <ul><li>تواصل مباشر غير محدود</li><li>نشر طلبات في لوحة الطلبات</li><li>إلغاء في أي وقت</li></ul>
+      <ul><li>تواصل مباشر غير محدود</li><li>نشر حملات إعلانية واستقبال المتقدمين</li><li>إلغاء في أي وقت</li></ul>
       <button class="btn brand block" data-plan="شهري">اشترك الآن</button>
     </div>
     <div class="panel plan">
@@ -331,7 +332,7 @@ const CITIES=["الرياض","جدة","مكة","المدينة","الدمام","
 const COLORS=[["#5E6B48","#A9B58C"]];
 
 let user=null, role=null, isSub=false, subPlan="", subUntil=null, pending=null, isAdmin=false;
-let creators=[], jobs=[], activeCat="", dashAvail=1, myCreator=null;
+let creators=[], activeCat="", dashAvail=1, myCreator=null;
 
 const $=s=>document.querySelector(s);
 const col=()=>COLORS[0];
@@ -342,7 +343,7 @@ function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clea
 const fill=(sel,arr)=>sel.insertAdjacentHTML("beforeend",arr.map(x=>`<option>${x}</option>`).join(""));
 const arErr=e=>({"auth/email-already-in-use":"البريد مسجّل مسبقاً — جرّب الدخول","auth/invalid-email":"البريد غير صحيح","auth/weak-password":"كلمة المرور قصيرة (6 أحرف على الأقل)","auth/invalid-credential":"البريد أو كلمة المرور غير صحيحة","auth/too-many-requests":"محاولات كثيرة، حاول لاحقاً","permission-denied":"ليست لديك صلاحية لهذا الإجراء"}[e.code]||("حدث خطأ: "+(e.code||e.message)));
 
-fill($("#fCity"),CITIES);fill($("#jCat"),CATS);fill($("#jCity"),CITIES);fill($("#cCat"),CATS);fill($("#cCity"),CITIES);
+fill($("#fCity"),CITIES);fill($("#cCat"),CATS);fill($("#cCity"),CITIES);
 $("#chips").innerHTML=["الكل",...CATS].map(c=>`<button class="chip ${c==="الكل"?"on":""}" data-c="${c==="الكل"?"":c}">${c}</button>`).join("");
 
 const playSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
@@ -369,13 +370,6 @@ async function loadCreators(){
     creators=snap.docs.map(d=>({id:d.id,...d.data()}));
   }catch(e){console.error(e);creators=[];$("#grid").innerHTML='<div class="empty">تعذّر تحميل البيانات — تأكد من إعدادات Firebase.</div>';return}
   render();
-}
-async function loadJobs(){
-  try{
-    const snap=await getDocs(query(collection(db,"jobs"),orderBy("createdAt","desc"),limit(100)));
-    jobs=snap.docs.map(d=>({id:d.id,...d.data()}));
-  }catch(e){console.error(e);jobs=[]}
-  renderJobs();
 }
 
 function render(){
@@ -424,15 +418,6 @@ async function openProfile(id){
 }
 function closeModal(){$("#modal").classList.remove("on")}
 
-async function renderJobs(){
-  const ago=t=>{if(!t)return"الآن";const h=Math.round((Date.now()-t.toMillis())/36e5);return h<1?"الآن":h<24?`قبل ${h} ساعة`:`قبل ${Math.round(h/24)} يوم`};
-  if(!jobs.length){$("#jobList").innerHTML='<div class="panel meta">لا توجد طلبات حالياً.</div>';}
-  else $("#jobList").innerHTML=jobs.map(j=>`<div class="job"><div class="top"><div><strong>${esc(j.title)}</strong><div class="meta">${esc(j.city)} · ${esc(j.qty)} فيديو · ${ago(j.createdAt)}</div></div><span class="price">${esc(j.budget)} ريال</span></div>
-    <p style="margin:.4rem 0">${esc(j.desc)}</p><span class="pill">${esc(j.cat)}</span>
-    <div style="margin-top:8px" id="jc-${esc(j.id)}">${user?`<button class="btn ghost" data-jobcontact="${esc(j.id)}" style="padding:.35rem .8rem;font-size:.85rem">إظهار التواصل</button>`:'<span class="meta">سجّل دخولك لرؤية التواصل</span>'}
-    ${user&&(j.owner===user.uid||isAdmin)?`<button class="btn ghost" data-deljob="${esc(j.id)}" style="padding:.35rem .8rem;font-size:.85rem">حذف</button>`:""}</div></div>`).join("");
-  $("#jobNote").textContent=!user?"سجّل دخولك واشترك لنشر الطلبات.":isSub||isAdmin?"":"نشر الطلبات متاح للمشتركين.";
-}
 
 function renderSub(){
   $("#subTag").hidden=!isSub;
@@ -503,8 +488,8 @@ async function loadMembers(){
       <button class="trash" type="button" data-deluser="${esc(u.id)}" aria-label="حذف ${esc(u.email)}">${trashSvg}</button></div></div>`}).join(""):'<div class="panel meta">لا يوجد أعضاء.</div>';
 }
 async function deleteMember(uid){
-  const jobsSnap=await getDocs(collection(db,"jobs"));
-  for(const j of jobsSnap.docs){ if(j.data().owner===uid){ await deleteDoc(doc(db,"jobs",j.id,"private","contact")).catch(()=>{}); await deleteDoc(doc(db,"jobs",j.id)); } }
+  const cs=await getDocs(collection(db,"campaigns"));
+  for(const c of cs.docs){ if(c.data().owner===uid) await deleteCampaign(c.id); else await deleteDoc(doc(db,"campaigns",c.id,"applications",uid)).catch(()=>{}); }
   await deleteDoc(doc(db,"creators",uid,"private","contact")).catch(()=>{});
   await deleteDoc(doc(db,"creators",uid)).catch(()=>{});
   await deleteDoc(doc(db,"subscribers",uid)).catch(()=>{});
@@ -524,6 +509,214 @@ async function loadAdmin(){
     <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn teal" data-renew="${d.id}" data-plan-name="${esc(r.plan)}">تجديد ${esc(r.plan)}</button>
     <button class="btn ghost" data-togglesub="${d.id}" data-active="${r.active?1:0}">${r.active?"إيقاف":"إعادة تفعيل"}</button></div></div></div>`}).join("");
 }
+
+/* ---------- campaigns ---------- */
+const PLATFORMS=["تيك توك","سناب شات","إنستغرام","يوتيوب","إكس"];
+const CTYPES=["تجربة منتج","فتح صندوق","مراجعة","تصوير منتج","طريقة استخدام","أخرى"];
+const DURS=["15 ثانية","30 ثانية","60 ثانية","أكثر من دقيقة"];
+const ANY_CITY="أي مدينة / عن بُعد";
+let camps=[], myApps={}, ctab="open";
+const fmtD=t=>t?t.toDate().toLocaleDateString("ar-SA-u-ca-gregory",{day:"numeric",month:"long"}):"—";
+const campState=c=>c.status!=="open"?"closed":(c.applyBy&&c.applyBy.toMillis()<Date.now()?"expired":"open");
+const budgetTxt=c=>c.budgetMax&&c.budgetMax>c.budgetMin?`${c.budgetMin} – ${c.budgetMax}`:`${c.budgetMin}`;
+const daysLeft=c=>{if(!c.applyBy)return"";const d=Math.ceil((c.applyBy.toMillis()-Date.now())/864e5);return d<=0?"":d===1?"باقي يوم":`باقي ${d} أيام`};
+
+fill($("#cfCat"),CATS);fill($("#cfCity"),[...CITIES,ANY_CITY]);fill($("#cfPlat"),PLATFORMS);
+
+async function loadCamps(){
+  try{
+    const snap=await getDocs(query(collection(db,"campaigns"),orderBy("createdAt","desc"),limit(200)));
+    camps=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.error(e);camps=[]}
+  myApps={};
+  if(user&&role==="creator"){
+    await Promise.all(camps.map(async c=>{try{const a=await getDoc(doc(db,"campaigns",c.id,"applications",user.uid));if(a.exists())myApps[c.id]=a.data()}catch(e){}}));
+  }
+  renderCamps();
+}
+
+function campCard(c){
+  const st=campState(c), mine=user&&(c.owner===user.uid||isAdmin), app=myApps[c.id];
+  const stLabel=st==="open"?"مفتوحة":st==="expired"?"انتهى التقديم":"مغلقة";
+  let actions="";
+  if(mine){
+    actions=`<button class="btn teal" type="button" data-apps="${esc(c.id)}">المتقدمون</button>
+      ${st==="open"?`<button class="btn ghost" type="button" data-closecamp="${esc(c.id)}">إغلاق التقديم</button>`:""}
+      <button class="trash" type="button" data-delcamp="${esc(c.id)}" aria-label="حذف الحملة">${trashSvg}</button>`;
+  }else if(app){
+    actions=app.status==="accepted"?'<span class="pill" style="background:#E3F6EA;color:#17733B">تم قبولك ✓ سيتواصل معك صاحب الإعلان</span>':'<span class="pill">تقدّمت — قيد المراجعة</span>';
+  }else if(st==="open"){
+    if(!user)actions='<button class="btn brand" type="button" data-auth-creator>سجّل كصانع محتوى للتقديم</button>';
+    else if(role==="creator")actions=`<button class="btn brand" type="button" data-apply="${esc(c.id)}">تقدّم للحملة</button>`;
+  }
+  return `<article class="camp">
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+      <div><strong style="font-size:1.05rem">${esc(c.title)}</strong><div class="meta">${esc(c.product)} · ${esc(c.city)}</div></div>
+      <span class="st ${st==="open"?"st-open":"st-closed"}">${stLabel}</span>
+    </div>
+    <div class="budget">${budgetTxt(c)} <small>ريال</small></div>
+    <div class="tags"><span class="tag olive">${esc(c.cat)}</span>${(c.platforms||[]).map(p=>`<span class="tag">${esc(p)}</span>`).join("")}</div>
+    <div class="kv">
+      <div><span>نوع المحتوى</span><b>${esc(c.ctype)}</b></div>
+      <div><span>المطلوب</span><b>${esc(c.qty)} فيديو · ${esc(c.dur)}</b></div>
+      <div><span>آخر موعد للتقديم</span><b>${fmtD(c.applyBy)} ${st==="open"?`<em>${daysLeft(c)}</em>`:""}</b></div>
+      <div><span>موعد التسليم</span><b>${fmtD(c.deliverBy)}</b></div>
+      <div><span>المنتج</span><b>${c.ships?"يُرسل لصانع المحتوى":"لا يُرسل"}</b></div>
+    </div>
+    ${c.desc?`<p style="margin:0;white-space:pre-line">${esc(c.desc)}</p>`:""}
+    ${actions?`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${actions}</div>`:""}
+  </article>`;
+}
+
+function renderCamps(){
+  $("#tabMine").hidden=!(user&&(role==="store"||isAdmin));
+  $("#tabApplied").hidden=!(user&&role==="creator");
+  $("#newCamp").hidden=!!(user&&role==="creator");
+  if((ctab==="mine"&&$("#tabMine").hidden)||(ctab==="applied"&&$("#tabApplied").hidden)){ctab="open";document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x.dataset.ctab==="open"))}
+  const cat=$("#cfCat").value,city=$("#cfCity").value,plat=$("#cfPlat").value,b=$("#cfBudget").value;
+  const list=camps.filter(c=>
+    (ctab==="open"?campState(c)==="open":ctab==="mine"?(user&&c.owner===user.uid):!!myApps[c.id])&&
+    (!cat||c.cat===cat)&&(!city||c.city===city)&&(!plat||(c.platforms||[]).includes(plat))&&
+    (!b||(b==="s"&&c.budgetMin<500)||(b==="m"&&c.budgetMin>=500&&c.budgetMin<=2000)||(b==="l"&&c.budgetMin>2000)));
+  const empty=ctab==="mine"?"لم تنشر أي حملة بعد.":ctab==="applied"?"لم تتقدّم لأي حملة بعد.":"لا توجد حملات مفتوحة حالياً.";
+  $("#campList").innerHTML=list.length?list.map(campCard).join(""):`<div class="empty">${empty}</div>`;
+}
+
+function openCampForm(){
+  const today=new Date().toISOString().slice(0,10);
+  $("#sheet").innerHTML=`
+    <button class="close" data-close aria-label="إغلاق">✕</button>
+    <h3 style="margin-top:0">حملة إعلانية جديدة</h3>
+    <form id="campForm">
+      <label for="kTitle">عنوان الحملة</label><input id="kTitle" required maxlength="80" placeholder="مثال: إطلاق عطر الصيف">
+      <label for="kProduct">المنتج أو المتجر</label><input id="kProduct" required maxlength="80" placeholder="مثال: عطر ليالي — متجر عبير">
+      <div class="two">
+        <div><label for="kCat">التخصص</label><select id="kCat">${CATS.map(x=>`<option>${x}</option>`).join("")}</select></div>
+        <div><label for="kCity">المدينة</label><select id="kCity">${[ANY_CITY,...CITIES].map(x=>`<option>${x}</option>`).join("")}</select></div>
+      </div>
+      <label>المنصات</label>
+      <div class="chk">${PLATFORMS.map(p=>`<label><input type="checkbox" name="kPlat" value="${p}"> ${p}</label>`).join("")}</div>
+      <div class="two">
+        <div><label for="kType">نوع المحتوى</label><select id="kType">${CTYPES.map(x=>`<option>${x}</option>`).join("")}</select></div>
+        <div><label for="kDur">مدة الفيديو</label><select id="kDur">${DURS.map(x=>`<option${x==="30 ثانية"?" selected":""}>${x}</option>`).join("")}</select></div>
+      </div>
+      <div class="two">
+        <div><label for="kQty">عدد الفيديوهات</label><input id="kQty" type="number" min="1" max="50" value="1" required></div>
+        <div><label class="chk" style="margin-top:2.1rem"><input type="checkbox" id="kShip"> سأرسل المنتج لصانع المحتوى</label></div>
+      </div>
+      <div class="two">
+        <div><label for="kBmin">الميزانية من (ريال)</label><input id="kBmin" type="number" min="50" required inputmode="numeric"></div>
+        <div><label for="kBmax">إلى (اختياري)</label><input id="kBmax" type="number" min="50" inputmode="numeric"></div>
+      </div>
+      <div class="two">
+        <div><label for="kApply">آخر موعد للتقديم</label><input id="kApply" type="date" min="${today}" required></div>
+        <div><label for="kDeliver">موعد التسليم</label><input id="kDeliver" type="date" min="${today}" required></div>
+      </div>
+      <label for="kDesc">تفاصيل الحملة</label><textarea id="kDesc" rows="4" maxlength="1000" placeholder="الأسلوب المطلوب، الرسالة الأساسية، ما يجب ذكره أو تجنّبه…"></textarea>
+      <p class="err" id="kErr"></p>
+      <button class="btn brand block">نشر الحملة</button>
+    </form>`;
+  $("#modal").classList.add("on");
+}
+
+async function submitCamp(e){
+  e.preventDefault();
+  const plats=[...document.querySelectorAll('input[name="kPlat"]:checked')].map(x=>x.value);
+  const bmin=+$("#kBmin").value, bmax=+$("#kBmax").value||0;
+  const ap=$("#kApply").value, dl=$("#kDeliver").value;
+  if(!plats.length){$("#kErr").textContent="اختر منصة واحدة على الأقل";return}
+  if(bmax&&bmax<bmin){$("#kErr").textContent="الحد الأعلى للميزانية أقل من الحد الأدنى";return}
+  if(dl<ap){$("#kErr").textContent="موعد التسليم قبل آخر موعد للتقديم";return}
+  const data={owner:user.uid,title:$("#kTitle").value.trim(),product:$("#kProduct").value.trim(),cat:$("#kCat").value,city:$("#kCity").value,
+    platforms:plats,ctype:$("#kType").value,dur:$("#kDur").value,qty:+$("#kQty").value||1,ships:$("#kShip").checked,
+    budgetMin:bmin,budgetMax:bmax,applyBy:Timestamp.fromDate(new Date(ap+"T23:59:59")),deliverBy:Timestamp.fromDate(new Date(dl+"T23:59:59")),
+    desc:$("#kDesc").value.trim(),status:"open",createdAt:serverTimestamp()};
+  try{await addDoc(collection(db,"campaigns"),data);closeModal();toast("تم نشر حملتك");ctab="mine";document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x.dataset.ctab==="mine"));loadCamps()}
+  catch(err){$("#kErr").textContent=arErr(err)}
+}
+
+function openApply(cid){
+  const c=camps.find(x=>x.id===cid);if(!c)return;
+  if(!myCreator){toast("أنشئ ملفك كصانع محتوى أولاً");location.hash="dashboard";return}
+  $("#sheet").innerHTML=`
+    <button class="close" data-close aria-label="إغلاق">✕</button>
+    <h3 style="margin-top:0">التقديم على: ${esc(c.title)}</h3>
+    <p class="meta">الميزانية: ${budgetTxt(c)} ريال · ${esc(c.qty)} فيديو · ${esc(c.dur)}</p>
+    <form id="applyForm" data-cid="${esc(c.id)}">
+      <label for="aPrice">سعرك للحملة كاملة (ريال)</label><input id="aPrice" type="number" min="1" required value="${esc(c.budgetMin||myCreator.price||"")}" inputmode="numeric">
+      <label for="aMsg">رسالة لصاحب الإعلان</label><textarea id="aMsg" rows="4" maxlength="400" placeholder="عرّف بنفسك وبفكرتك للمحتوى…"></textarea>
+      <p class="err" id="apErr"></p>
+      <button class="btn brand block">إرسال التقديم</button>
+    </form>`;
+  $("#modal").classList.add("on");
+}
+
+async function submitApply(e){
+  e.preventDefault();
+  const cid=e.target.dataset.cid;
+  try{
+    await setDoc(doc(db,"campaigns",cid,"applications",user.uid),{creator:user.uid,name:myCreator.name,cat:myCreator.cat,city:myCreator.city,
+      price:+$("#aPrice").value,msg:$("#aMsg").value.trim(),status:"pending",createdAt:serverTimestamp()});
+    closeModal();toast("تم إرسال تقديمك");loadCamps();
+  }catch(err){$("#apErr").textContent=arErr(err)}
+}
+
+async function openApps(cid){
+  const c=camps.find(x=>x.id===cid);if(!c)return;
+  $("#sheet").innerHTML=`<button class="close" data-close aria-label="إغلاق">✕</button><h3 style="margin-top:0">المتقدمون: ${esc(c.title)}</h3><div id="appsList" class="meta">جاري التحميل…</div>`;
+  $("#modal").classList.add("on");
+  try{
+    const snap=await getDocs(collection(db,"campaigns",cid,"applications"));
+    const apps=snap.docs.map(d=>({id:d.id,...d.data()}));
+    $("#appsList").className="";
+    $("#appsList").innerHTML=apps.length?apps.map(a=>`<div class="job">
+      <div class="top"><div><strong>${esc(a.name)}</strong><div class="meta">${esc(a.cat)} · ${esc(a.city)}</div></div><span class="price">${esc(a.price)} ريال</span></div>
+      ${a.msg?`<p style="margin:.4rem 0;white-space:pre-line">${esc(a.msg)}</p>`:""}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="ap-${esc(a.id)}">
+        ${creators.find(x=>x.id===a.id)?`<button class="btn ghost" type="button" data-open="${esc(a.id)}">عرض الملف</button>`:""}
+        ${a.status==="accepted"?`<button class="btn teal" type="button" data-wa="${esc(a.id)}">تواصل واتساب</button>`:`<button class="btn brand" type="button" data-accept="${esc(cid)}|${esc(a.id)}">قبول</button><button class="btn ghost" type="button" data-rejapp="${esc(cid)}|${esc(a.id)}">رفض</button>`}
+      </div></div>`).join(""):'<div class="panel meta">لا يوجد متقدمون بعد.</div>';
+  }catch(err){$("#appsList").textContent=arErr(err)}
+}
+
+async function showWa(uid){
+  const box=$("#ap-"+uid);if(!box)return;
+  try{const d=await getDoc(doc(db,"creators",uid,"private","contact"));const wa=d.exists()?d.data().wa:"";
+    const btn=box.querySelector("[data-wa],[data-accept]");const html=wa?`<a class="contact wa" href="${waLink(wa)}" target="_blank" rel="noopener">واتساب · ${esc(wa)}</a>`:'<span class="meta">لا يوجد رقم</span>';
+    if(btn)btn.outerHTML=html;else box.insertAdjacentHTML("beforeend",html);
+    const rj=box.querySelector("[data-rejapp]");if(rj)rj.remove();
+  }catch(err){toast(arErr(err))}
+}
+
+async function deleteCampaign(cid){
+  const apps=await getDocs(collection(db,"campaigns",cid,"applications"));
+  for(const a of apps.docs)await deleteDoc(a.ref);
+  await deleteDoc(doc(db,"campaigns",cid));
+}
+
+document.addEventListener("submit",e=>{if(e.target.id==="campForm")submitCamp(e);if(e.target.id==="applyForm")submitApply(e)});
+["#cfCat","#cfCity","#cfPlat","#cfBudget"].forEach(s=>$(s).addEventListener("input",renderCamps));
+$("#newCamp").onclick=()=>{
+  if(!user){authMode="signup";authRole="store";openAuth();return}
+  if(!(isSub||isAdmin)){toast("نشر الحملات متاح للمشتركين");location.hash="pricing";return}
+  openCampForm();
+};
+document.addEventListener("click",async e=>{
+  const t=e.target;
+  const tb=t.closest("[data-ctab]"); if(tb){ctab=tb.dataset.ctab;document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x===tb));renderCamps();return}
+  if(t.closest("[data-auth-creator]")){authMode="signup";authRole="creator";openAuth();return}
+  const ap=t.closest("[data-apply]"); if(ap){openApply(ap.dataset.apply);return}
+  const as=t.closest("[data-apps]"); if(as){openApps(as.dataset.apps);return}
+  const cc=t.closest("[data-closecamp]"); if(cc){try{await setDoc(doc(db,"campaigns",cc.dataset.closecamp),{status:"closed"},{merge:true});toast("تم إغلاق التقديم");loadCamps()}catch(err){toast(arErr(err))}return}
+  const dc=t.closest("[data-delcamp]"); if(dc){
+    if(!dc.classList.contains("sure")){dc.classList.add("sure");dc.textContent="تأكيد الحذف";setTimeout(()=>{if(dc.isConnected){dc.classList.remove("sure");dc.innerHTML=trashSvg}},4000);return}
+    dc.disabled=true;try{await deleteCampaign(dc.dataset.delcamp);toast("تم حذف الحملة");loadCamps()}catch(err){toast(arErr(err));dc.disabled=false}return}
+  const acc=t.closest("[data-accept]"); if(acc){const [cid,uid]=acc.dataset.accept.split("|");
+    try{await setDoc(doc(db,"campaigns",cid,"applications",uid),{status:"accepted"},{merge:true});toast("تم القبول");showWa(uid)}catch(err){toast(arErr(err))}return}
+  const rja=t.closest("[data-rejapp]"); if(rja){const [cid,uid]=rja.dataset.rejapp.split("|");
+    try{await deleteDoc(doc(db,"campaigns",cid,"applications",uid));const b=$("#ap-"+uid);if(b)b.closest(".job").remove();toast("تم رفض التقديم")}catch(err){toast(arErr(err))}return}
+  const w=t.closest("[data-wa]"); if(w){showWa(w.dataset.wa);return}
+});
 
 /* ---------- auth ---------- */
 let authMode="login", authRole="store";
@@ -567,12 +760,12 @@ onAuthStateChanged(auth, async u=>{
     await loadMine();
   }
   await loadBank();
-  renderSub();renderDash();renderJobs();
+  renderSub();renderDash();loadCamps();
   if(location.hash==="#admin")loadAdmin();
 });
 
 /* ---------- routing ---------- */
-const VIEWS=["home","jobs","pricing","dashboard","admin"];
+const VIEWS=["home","campaigns","pricing","dashboard","admin"];
 function route(){
   let v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"home";
   if(v==="admin"&&!isAdmin)v="home";
@@ -606,13 +799,6 @@ document.addEventListener("click",async e=>{
       pending=p.dataset.plan;renderSub();$("#payBox").scrollIntoView({behavior:"smooth",block:"center"});
       toast("وصلنا طلبك — حوّل المبلغ وأرسل الإيصال")}catch(err){toast(arErr(err))}
     return}
-  const jc=t.closest("[data-jobcontact]"); if(jc){
-    try{const d=await getDoc(doc(db,"jobs",jc.dataset.jobcontact,"private","contact"));const wa=d.exists()?d.data().wa:"";
-      jc.outerHTML=wa?`<a class="contact wa" style="display:inline-flex" href="${waLink(wa)}" target="_blank" rel="noopener">واتساب · ${esc(wa)}</a>`:'<span class="meta">لا يوجد رقم</span>'}catch(err){toast(arErr(err))}
-    return}
-  const dj=t.closest("[data-deljob]"); if(dj){
-    try{await deleteDoc(doc(db,"jobs",dj.dataset.deljob,"private","contact")).catch(()=>{});await deleteDoc(doc(db,"jobs",dj.dataset.deljob));toast("تم حذف الطلب");loadJobs()}catch(err){toast(arErr(err))}
-    return}
   const ac=t.closest("[data-activate]"); if(ac){
     const b=writeBatch(db);
     const days=(PLANS[ac.dataset.planName]||{days:30}).days;
@@ -630,7 +816,7 @@ document.addEventListener("click",async e=>{
   const du=t.closest("[data-deluser]"); if(du){
     if(!du.classList.contains("sure")){du.classList.add("sure");du.textContent="تأكيد الحذف";setTimeout(()=>{if(du.isConnected){du.classList.remove("sure");du.innerHTML=trashSvg}},4000);return}
     du.disabled=true;du.textContent="جاري الحذف…";
-    try{await deleteMember(du.dataset.deluser);toast("تم حذف العضو وبياناته");await loadCreators();loadJobs();loadAdmin()}catch(err){toast(arErr(err));du.disabled=false}
+    try{await deleteMember(du.dataset.deluser);toast("تم حذف العضو وبياناته");await loadCreators();loadCamps();loadAdmin()}catch(err){toast(arErr(err));du.disabled=false}
     return}
   const rj=t.closest("[data-rejreq]"); if(rj){try{await deleteDoc(doc(db,"subRequests",rj.dataset.rejreq));loadAdmin()}catch(err){toast(arErr(err))}return}
   const ts=t.closest("[data-togglesub]"); if(ts){
@@ -642,17 +828,6 @@ $("#bankForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const data={bank:$("#bBank").value.trim(),holder:$("#bHolder").value.trim(),iban:$("#bIban").value.trim().toUpperCase(),wa:$("#bWa").value.trim()};
   try{await setDoc(doc(db,"settings","payment"),data);BANK=data;renderSub();toast("تم حفظ بيانات التحويل")}catch(err){toast(arErr(err))}
-});
-
-$("#jobForm").addEventListener("submit",async e=>{
-  e.preventDefault();
-  if(!user){authMode="signup";authRole="store";openAuth();return}
-  if(!(isSub||isAdmin)){toast("اشترك أولاً لنشر الطلبات");location.hash="pricing";return}
-  try{
-    const ref=await addDoc(collection(db,"jobs"),{owner:user.uid,title:$("#jTitle").value.trim(),cat:$("#jCat").value,city:$("#jCity").value,budget:+$("#jBudget").value,qty:+$("#jQty").value||1,desc:$("#jDesc").value.trim(),createdAt:serverTimestamp()});
-    await setDoc(doc(db,"jobs",ref.id,"private","contact"),{wa:$("#jWa").value.trim()});
-    e.target.reset();toast("تم نشر طلبك");loadJobs();
-  }catch(err){toast(arErr(err))}
 });
 
 $("#availToggle").addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;dashAvail=+b.dataset.a;
@@ -672,7 +847,7 @@ $("#crForm").addEventListener("submit",async e=>{
   }catch(err){toast(arErr(err))}
 });
 
-loadCreators();loadJobs();renderSub();route();
+loadCreators();loadCamps();renderSub();route();
 </script>
 </body>
 </html>
