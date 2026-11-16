@@ -131,6 +131,12 @@ section.view.on{display:block}
 .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:.88rem;background:#F5EEE3;border-radius:12px;padding:10px 12px}.kv span{display:block;color:#7A6B58;font-size:.78rem}.kv b{font-weight:600}.kv em{font-style:normal;color:var(--brand);font-size:.78rem;margin-inline-start:4px}
 .chk{display:flex;flex-wrap:wrap;gap:6px}.chk label,label.chk{margin:0;font-weight:500;display:flex;align-items:center;gap:6px;border:1px solid #E2D6C3;background:#F5EEE3;border-radius:10px;padding:.45rem .7rem}.chk input{width:auto}
 @media(max-width:820px){.cfilters{grid-template-columns:1fr 1fr}}
+.sfilters{grid-template-columns:2fr 1fr 1fr}
+.store-card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:10px}
+.store-av{width:52px;height:52px;border-radius:14px;background:linear-gradient(150deg,#1D507F,#5B8DB8);color:#fff;display:grid;place-items:center;font-weight:700;font-size:1.1rem;flex:none}
+.slinks{display:flex;gap:8px;flex-wrap:wrap}.slinks a{font-size:.85rem;padding:.35rem .75rem;border-radius:10px;border:1px solid var(--line);text-decoration:none;color:var(--brand)}
+.filter-banner{display:flex;align-items:center;gap:8px;background:var(--brand-soft);color:var(--brand-d);border-radius:12px;padding:.5rem .8rem;margin-bottom:12px;width:fit-content}
+.filter-banner button{border:0;background:transparent;font-weight:700;color:var(--brand-d);min-width:32px;min-height:32px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fff;padding:.7rem 1.1rem;border-radius:12px;transition:.25s;z-index:60;font-size:.92rem}
 .toast.on{transform:translateX(-50%) translateY(0)}
 footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);font-size:.85rem}
@@ -145,9 +151,10 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
     <button class="btn ghost" id="authBtn" style="padding:.4rem .8rem;font-size:.85rem;flex:none">دخول</button>
     <nav class="links">
       <a href="#home" data-v="home">صناع المحتوى</a>
+      <a href="#stores" data-v="stores">أصحاب المتاجر</a>
       <a href="#campaigns" data-v="campaigns">الحملات</a>
       <a href="#pricing" data-v="pricing">الباقات</a>
-      <a href="#dashboard" data-v="dashboard">لوحة صانع المحتوى</a>
+      <a href="#dashboard" data-v="dashboard">لوحتي</a>
       <a href="#admin" data-v="admin" id="adminLink" hidden>الإدارة</a>
     </nav>
   </div>
@@ -191,7 +198,20 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
     <select id="cfPlat" aria-label="المنصة"><option value="">كل المنصات</option></select>
     <select id="cfBudget" aria-label="الميزانية"><option value="">كل الميزانيات</option><option value="s">أقل من 500 ريال</option><option value="m">500 – 2000 ريال</option><option value="l">أكثر من 2000 ريال</option></select>
   </div>
+  <div id="ownerBanner"></div>
   <div id="campList" class="camp-grid"><div class="empty">جاري التحميل…</div></div>
+</section>
+
+<!-- STORES -->
+<section class="view" id="v-stores">
+  <h2 class="h2">أصحاب المتاجر</h2>
+  <p class="lead">متاجر وعلامات تجارية تبحث عن صنّاع محتوى. تصفّح حملاتهم وتقدّم عليها.</p>
+  <div class="filters sfilters">
+    <input class="q" id="sfQ" placeholder="ابحث باسم المتجر…" aria-label="بحث">
+    <select id="sfCat" aria-label="التخصص"><option value="">كل التخصصات</option></select>
+    <select id="sfCity" aria-label="المدينة"><option value="">كل المدن</option></select>
+  </div>
+  <div class="grid" id="storeGrid"><div class="empty">جاري التحميل…</div></div>
 </section>
 
 <!-- PRICING -->
@@ -255,9 +275,28 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
 
 <!-- DASHBOARD -->
 <section class="view" id="v-dashboard">
-  <h2 class="h2">لوحة صانع المحتوى</h2>
-  <p class="lead">سجّل مجاناً وحدّث بياناتك وأسعارك وحالتك بنفسك دون الحاجة لمراسلة الإدارة.</p>
-  <div class="panel" id="dashGate" hidden style="margin-bottom:40px;text-align:center"><p>سجّل دخولك كصانع محتوى لإنشاء ملفك وتعديله.</p><button class="btn teal" data-auth>تسجيل / دخول</button></div>
+  <h2 class="h2" id="dashTitle">لوحتي</h2>
+  <p class="lead" id="dashLead">سجّل مجاناً وحدّث بياناتك بنفسك دون الحاجة لمراسلة الإدارة.</p>
+  <div class="panel" id="dashGate" hidden style="margin-bottom:40px;text-align:center"><p>سجّل دخولك لإنشاء ملفك وتعديله — كصانع محتوى أو صاحب متجر.</p><button class="btn teal" data-auth>تسجيل / دخول</button></div>
+  <div class="dash" id="storeBody" hidden>
+    <form class="panel" id="stForm">
+      <div class="two">
+        <div><label for="sName">اسم المتجر</label><input id="sName" required maxlength="60"></div>
+        <div><label for="sCat">التخصص</label><select id="sCat"></select></div>
+      </div>
+      <div class="two">
+        <div><label for="sCity">المدينة</label><select id="sCity"></select></div>
+        <div><label for="sSite">رابط المتجر (اختياري)</label><input id="sSite" type="url" dir="ltr" placeholder="https://"></div>
+      </div>
+      <label for="sInsta">حساب إنستغرام أو تيك توك (اختياري)</label><input id="sInsta" dir="ltr" placeholder="https://www.instagram.com/…">
+      <label for="sBio">نبذة عن المتجر</label><textarea id="sBio" rows="3" maxlength="400" placeholder="ماذا تبيع؟ ومن جمهورك؟"></textarea>
+      <button class="btn teal block" style="margin-top:12px">حفظ ونشر ملف المتجر</button>
+    </form>
+    <div class="panel">
+      <strong>معاينة بطاقة المتجر</strong>
+      <div id="stPreview" style="margin-top:10px;max-width:320px"></div>
+    </div>
+  </div>
   <div class="dash" id="dashBody">
     <form class="panel" id="crForm">
       <div class="two">
@@ -332,7 +371,7 @@ const CITIES=["الرياض","جدة","مكة","المدينة","الدمام","
 const COLORS=[["#5E6B48","#A9B58C"]];
 
 let user=null, role=null, isSub=false, subPlan="", subUntil=null, pending=null, isAdmin=false;
-let creators=[], activeCat="", dashAvail=1, myCreator=null;
+let creators=[], stores=[], myStore=null, ownerFilter="", activeCat="", dashAvail=1, myCreator=null;
 
 const $=s=>document.querySelector(s);
 const col=()=>COLORS[0];
@@ -429,16 +468,29 @@ function renderSub(){
 }
 
 function renderDash(){
-  const ok=user&&role==="creator";
-  $("#dashGate").hidden=ok; $("#dashBody").hidden=!ok;
-  if(ok)renderPreview();
+  const cr=!!(user&&role==="creator"), st=!!(user&&role==="store");
+  $("#dashGate").hidden=cr||st; $("#dashBody").hidden=!cr; $("#storeBody").hidden=!st;
+  $("#dashTitle").textContent=cr?"لوحة صانع المحتوى":st?"لوحة المتجر":"لوحتي";
+  $("#dashLead").textContent=cr?"حدّث بياناتك وأسعارك وحالتك بنفسك.":st?"عرّف بمتجرك ليتعرّف عليك صنّاع المحتوى قبل التقديم على حملاتك.":"سجّل مجاناً وحدّث بياناتك بنفسك دون الحاجة لمراسلة الإدارة.";
+  if(cr)renderPreview();
+  if(st)renderStPreview();
+}
+function renderStPreview(){
+  const s=myStore||{id:"x",name:$("#sName").value||"اسم متجرك",cat:$("#sCat").value,city:$("#sCity").value,bio:$("#sBio").value,site:$("#sSite").value,insta:$("#sInsta").value};
+  $("#stPreview").innerHTML=storeCard(s,true);
 }
 function renderPreview(){
   const c=myCreator||{id:"x",name:$("#cName").value||"اسمك",city:$("#cCity").value,cat:$("#cCat").value,price:$("#cPrice").value||"—",links:[]};
   $("#preview").innerHTML=cardHTML({...c,avail:dashAvail});
 }
 async function loadMine(){
-  myCreator=null;
+  myCreator=null; myStore=null;
+  if(user&&role==="store"){
+    try{const d=await getDoc(doc(db,"stores",user.uid));
+      if(d.exists()){myStore={id:d.id,...d.data()};$("#sName").value=myStore.name||"";$("#sCat").value=myStore.cat||CATS[0];$("#sCity").value=myStore.city||CITIES[0];
+        $("#sSite").value=myStore.site||"";$("#sInsta").value=myStore.insta||"";$("#sBio").value=myStore.bio||""}}catch(e){}
+    return;
+  }
   if(!(user&&role==="creator"))return;
   const d=await getDoc(doc(db,"creators",user.uid));
   if(d.exists()){
@@ -494,6 +546,7 @@ async function deleteMember(uid){
   await deleteDoc(doc(db,"creators",uid)).catch(()=>{});
   await deleteDoc(doc(db,"subscribers",uid)).catch(()=>{});
   await deleteDoc(doc(db,"subRequests",uid)).catch(()=>{});
+  await deleteDoc(doc(db,"stores",uid)).catch(()=>{});
   await deleteDoc(doc(db,"users",uid));
 }
 async function loadAdmin(){
@@ -509,6 +562,44 @@ async function loadAdmin(){
     <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn teal" data-renew="${d.id}" data-plan-name="${esc(r.plan)}">تجديد ${esc(r.plan)}</button>
     <button class="btn ghost" data-togglesub="${d.id}" data-active="${r.active?1:0}">${r.active?"إيقاف":"إعادة تفعيل"}</button></div></div></div>`}).join("");
 }
+
+/* ---------- stores ---------- */
+fill($("#sfCat"),CATS);fill($("#sfCity"),CITIES);fill($("#sCat"),CATS);fill($("#sCity"),CITIES);
+const safeUrl=u=>/^https?:\/\//i.test(u||"")?u:"";
+async function loadStores(){
+  try{const snap=await getDocs(query(collection(db,"stores"),orderBy("updatedAt","desc"),limit(300)));stores=snap.docs.map(d=>({id:d.id,...d.data()}))}
+  catch(e){console.error(e);stores=[]}
+  renderStores();
+}
+function storeCard(s,preview){
+  const open=camps.filter(c=>c.owner===s.id&&campState(c)==="open").length;
+  const site=safeUrl(s.site), insta=safeUrl(s.insta);
+  return `<article class="store-card">
+    <div class="row"><div class="store-av" aria-hidden="true">${esc(initials(s.name))}</div>
+      <div><div class="name">${esc(s.name)}</div><div class="meta">${esc(s.cat)} · ${esc(s.city)}</div></div></div>
+    ${s.bio?`<p style="margin:0" class="meta">${esc(s.bio)}</p>`:""}
+    ${site||insta?`<div class="slinks">${site?`<a href="${esc(site)}" target="_blank" rel="noopener">المتجر</a>`:""}${insta?`<a href="${esc(insta)}" target="_blank" rel="noopener">الحساب</a>`:""}</div>`:""}
+    <div class="row" style="justify-content:space-between"><span class="pill">${open?`${open} حملة مفتوحة`:"لا توجد حملات مفتوحة"}</span>
+      ${preview?"":`<button class="btn ghost" type="button" data-storecamps="${esc(s.id)}">حملات المتجر</button>`}</div>
+  </article>`;
+}
+function renderStores(){
+  const q=$("#sfQ").value.trim(),cat=$("#sfCat").value,city=$("#sfCity").value;
+  const list=stores.filter(s=>(!q||(s.name+(s.bio||"")).includes(q))&&(!cat||s.cat===cat)&&(!city||s.city===city));
+  $("#storeGrid").innerHTML=list.length?list.map(s=>storeCard(s)).join(""):'<div class="empty">لا توجد متاجر بهذه الفلاتر حالياً.</div>';
+}
+["#sfQ","#sfCat","#sfCity"].forEach(x=>$(x).addEventListener("input",renderStores));
+$("#stForm").addEventListener("input",()=>{if(!myStore)renderStPreview()});
+$("#stForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  if(!(user&&role==="store"))return;
+  const data={name:$("#sName").value.trim(),cat:$("#sCat").value,city:$("#sCity").value,site:safeUrl($("#sSite").value.trim()),insta:safeUrl($("#sInsta").value.trim()),bio:$("#sBio").value.trim().slice(0,400),updatedAt:serverTimestamp()};
+  try{await setDoc(doc(db,"stores",user.uid),data);myStore={id:user.uid,...data};renderStPreview();loadStores();toast("تم نشر ملف المتجر")}catch(err){toast(arErr(err))}
+});
+document.addEventListener("click",e=>{
+  const sc=e.target.closest("[data-storecamps]"); if(sc){ownerFilter=sc.dataset.storecamps;ctab="all";location.hash="campaigns";renderCamps();return}
+  if(e.target.closest("[data-clearowner]")){ownerFilter="";ctab="open";document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x.dataset.ctab==="open"));renderCamps();return}
+});
 
 /* ---------- campaigns ---------- */
 const PLATFORMS=["تيك توك","سناب شات","إنستغرام","يوتيوب","إكس"];
@@ -532,7 +623,7 @@ async function loadCamps(){
   if(user&&role==="creator"){
     await Promise.all(camps.map(async c=>{try{const a=await getDoc(doc(db,"campaigns",c.id,"applications",user.uid));if(a.exists())myApps[c.id]=a.data()}catch(e){}}));
   }
-  renderCamps();
+  renderCamps(); renderStores();
 }
 
 function campCard(c){
@@ -574,8 +665,10 @@ function renderCamps(){
   $("#newCamp").hidden=!!(user&&role==="creator");
   if((ctab==="mine"&&$("#tabMine").hidden)||(ctab==="applied"&&$("#tabApplied").hidden)){ctab="open";document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x.dataset.ctab==="open"))}
   const cat=$("#cfCat").value,city=$("#cfCity").value,plat=$("#cfPlat").value,b=$("#cfBudget").value;
+  const so=ownerFilter?stores.find(x=>x.id===ownerFilter):null;
+  $("#ownerBanner").innerHTML=ownerFilter?`<div class="filter-banner">حملات متجر: <b>${esc(so?so.name:"")}</b><button type="button" data-clearowner aria-label="إلغاء التصفية">✕</button></div>`:"";
   const list=camps.filter(c=>
-    (ctab==="open"?campState(c)==="open":ctab==="mine"?(user&&c.owner===user.uid):!!myApps[c.id])&&
+    (ownerFilter?c.owner===ownerFilter:ctab==="open"?campState(c)==="open":ctab==="mine"?(user&&c.owner===user.uid):!!myApps[c.id])&&
     (!cat||c.cat===cat)&&(!city||c.city===city)&&(!plat||(c.platforms||[]).includes(plat))&&
     (!b||(b==="s"&&c.budgetMin<500)||(b==="m"&&c.budgetMin>=500&&c.budgetMin<=2000)||(b==="l"&&c.budgetMin>2000)));
   const empty=ctab==="mine"?"لم تنشر أي حملة بعد.":ctab==="applied"?"لم تتقدّم لأي حملة بعد.":"لا توجد حملات مفتوحة حالياً.";
@@ -703,7 +796,7 @@ $("#newCamp").onclick=()=>{
 };
 document.addEventListener("click",async e=>{
   const t=e.target;
-  const tb=t.closest("[data-ctab]"); if(tb){ctab=tb.dataset.ctab;document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x===tb));renderCamps();return}
+  const tb=t.closest("[data-ctab]"); if(tb){ctab=tb.dataset.ctab;ownerFilter="";document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x===tb));renderCamps();return}
   if(t.closest("[data-auth-creator]")){authMode="signup";authRole="creator";openAuth();return}
   const ap=t.closest("[data-apply]"); if(ap){openApply(ap.dataset.apply);return}
   const as=t.closest("[data-apps]"); if(as){openApps(as.dataset.apps);return}
@@ -744,7 +837,7 @@ async function submitAuth(e){
       await setDoc(doc(db,"users",cr.user.uid),{role:authRole,email:em,createdAt:serverTimestamp()});
       role=authRole;
       toast("تم إنشاء حسابك");
-      closeModal(); if(authRole==="creator")location.hash="dashboard";
+      closeModal(); location.hash="dashboard";
     }else{
       await signInWithEmailAndPassword(auth,em,pw); toast("أهلاً بك"); closeModal();
     }
@@ -765,7 +858,7 @@ onAuthStateChanged(auth, async u=>{
 });
 
 /* ---------- routing ---------- */
-const VIEWS=["home","campaigns","pricing","dashboard","admin"];
+const VIEWS=["home","stores","campaigns","pricing","dashboard","admin"];
 function route(){
   let v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"home";
   if(v==="admin"&&!isAdmin)v="home";
@@ -847,7 +940,7 @@ $("#crForm").addEventListener("submit",async e=>{
   }catch(err){toast(arErr(err))}
 });
 
-loadCreators();loadCamps();renderSub();route();
+loadCreators();loadStores();loadCamps();renderSub();route();
 </script>
 </body>
 </html>
