@@ -436,7 +436,7 @@ async function loadCreators(){
 }
 
 function render(){
-  const q=$("#fQ").value.trim(),city=$("#fCity").valuep=$("#fPrice").value,av=$("#fAvail").value;
+  const q=$("#fQ").value.trim(),city=$("#fCity").value,p=$("#fPrice").value,av=$("#fAvail").value;
   const list=creators.filter(c=>
     (!activeCat||c.cat===activeCat)&&(!city||c.city===city)&&(!av||c.avail)&&
     (!p||(p==="eco"&&c.price<200)||(p==="mid"&&c.price>=200&&c.price<=400)||(p==="pro"&&c.price>400))&&
