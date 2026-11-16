@@ -312,11 +312,10 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
       </div>
       <div class="two">
         <div><label for="sCity">المدينة</label><select id="sCity"></select></div>
-        <div><label for="sSite">رابط الموقع أو المتجر (اختياري)</label><input id="sSite" type="url" dir="ltr" placeholder="https://"></div>
+        <div><label for="sSite">رابط الموقع أو الحساب (اختياري)</label><input id="sSite" type="url" dir="ltr" placeholder="https://"></div>
       </div>
-      <label for="sInsta">حساب إنستغرام أو تيك توك (اختياري)</label><input id="sInsta" dir="ltr" placeholder="https://www.instagram.com/…">
       <label for="sBio">نبذة تعريفية</label><textarea id="sBio" rows="3" maxlength="400" placeholder="ما نشاطك؟ ومن جمهورك؟"></textarea>
-      <button class="btn teal block" style="margin-top:12px">حفظ ونشر ملفي</button>
+      <button class="btn teal block" style="margin-top:12px">حفظ البيانات</button>
     </form>
     <div class="panel">
       <strong>معاينة بطاقتي</strong>
@@ -334,13 +333,13 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
         <div><label>الفئة</label><select id="cGender"><option>شاب</option><option>فتاة</option><option>أم</option><option>عائلة</option></select></div>
       </div>
       <div class="two">
-        <div><label>سعر الفيديو (ريال)</label><input id="cPrice" type="number" min="50" required></div>
-        <div><label>واتساب</label><input id="cWa" required placeholder="05xxxxxxxx"></div>
+        <div><label for="cPrice">سعر الفيديو (ريال، اختياري)</label><input id="cPrice" type="number" min="0" inputmode="numeric"></div>
+        <div><label for="cWa">واتساب</label><input id="cWa" required dir="ltr" inputmode="tel" placeholder="05xxxxxxxx"></div>
       </div>
       <label>نبذة قصيرة</label><textarea id="cBio" rows="2"></textarea>
       <label>روابط أعمالك (تيك توك، يوتيوب شورتس، جوجل درايف) — رابط في كل سطر</label>
       <textarea id="cLinks" rows="3" placeholder="https://www.tiktok.com/@…"></textarea>
-      <button class="btn teal block" style="margin-top:12px">حفظ ونشر ملفي</button>
+      <button class="btn teal block" style="margin-top:12px">حفظ البيانات</button>
     </form>
     <div>
       <div class="panel">
@@ -423,7 +422,7 @@ function cardHTML(c){
     <div class="cbody">
       <div class="row"><div class="av" style="background:${a}">${esc(initials(c.name))}</div>
         <div><div class="name">${esc(c.name)}</div><div class="meta">${esc(c.cat)} · ${esc(c.city)}</div></div></div>
-      <div class="row" style="justify-content:space-between"><span class="price">من ${esc(c.price)} ريال</span><span class="meta">${esc(c.gender||"")}</span></div>
+      <div class="row" style="justify-content:space-between"><span class="price">${+c.price?`من ${esc(c.price)} ريال`:"السعر عند التواصل"}</span><span class="meta">${esc(c.gender||"")}</span></div>
       <button class="btn ghost block" data-open="${esc(c.id)}">عرض الأعمال</button>
     </div></article>`;
 }
@@ -494,7 +493,7 @@ function renderSub(){
   $("#whoTag").hidden=!user; $("#whoTag").textContent=isAdmin?"الإدارة":ROLE_NAME[role]||"";
   const r=curRole();
   document.querySelectorAll(".links a[data-for]").forEach(a=>a.hidden=!a.dataset.for.split(" ").includes(r));
-  $("#dashLink").textContent=user?"ملفي":"التسجيل";
+  $("#dashLink").textContent=user?"سجل الأعضاء":"التسجيل";
 }
 
 function renderDash(){
@@ -506,7 +505,7 @@ function renderDash(){
   if(st){renderStPreview();$("#dashLead").textContent=myStore?"حدّث بياناتك بنفسك.":"لن تظهر في «طالب الخدمة» حتى تحفظ ملفك.";}
 }
 function renderStPreview(){
-  const s=myStore||{id:"x",name:$("#sName").value||"اسمك أو اسم الجهة",cat:$("#sCat").value,city:$("#sCity").value,bio:$("#sBio").value,site:$("#sSite").value,insta:$("#sInsta").value};
+  const s=myStore||{id:"x",name:$("#sName").value||"اسمك أو اسم الجهة",cat:$("#sCat").value,city:$("#sCity").value,bio:$("#sBio").value,site:$("#sSite").value};
   $("#stPreview").innerHTML=storeCard(s,true);
 }
 function renderPreview(){
@@ -518,7 +517,7 @@ async function loadMine(){
   if(user&&role==="store"){
     try{const d=await getDoc(doc(db,"stores",user.uid));
       if(d.exists()){myStore={id:d.id,...d.data()};$("#sName").value=myStore.name||"";$("#sCat").value=myStore.cat||CATS[0];$("#sCity").value=myStore.city||CITIES[0];
-        $("#sSite").value=myStore.site||"";$("#sInsta").value=myStore.insta||"";$("#sBio").value=myStore.bio||""}}catch(e){}
+        $("#sSite").value=myStore.site||myStore.insta||"";$("#sBio").value=myStore.bio||""}}catch(e){}
     return;
   }
   if(!(user&&role==="creator"))return;
@@ -611,7 +610,7 @@ function storeCard(s,preview){
     <div class="row"><div class="store-av" aria-hidden="true">${esc(initials(s.name))}</div>
       <div><div class="name">${esc(s.name)}</div><div class="meta">${esc(s.cat)} · ${esc(s.city)}</div></div></div>
     ${s.bio?`<p style="margin:0" class="meta">${esc(s.bio)}</p>`:""}
-    ${site||insta?`<div class="slinks">${site?`<a href="${esc(site)}" target="_blank" rel="noopener">الموقع</a>`:""}${insta?`<a href="${esc(insta)}" target="_blank" rel="noopener">الحساب</a>`:""}</div>`:""}
+    ${site||insta?`<div class="slinks">${site?`<a href="${esc(site)}" target="_blank" rel="noopener">الموقع / الحساب</a>`:""}${insta?`<a href="${esc(insta)}" target="_blank" rel="noopener">الحساب</a>`:""}</div>`:""}
     <div class="row" style="justify-content:space-between"><span class="pill">${open?`${open} حملة مفتوحة`:"لا توجد حملات مفتوحة"}</span>
       ${preview?"":`<button class="btn ghost" type="button" data-storecamps="${esc(s.id)}">حملاته</button>`}</div>
   </article>`;
@@ -626,7 +625,7 @@ $("#stForm").addEventListener("input",()=>{if(!myStore)renderStPreview()});
 $("#stForm").addEventListener("submit",async e=>{
   e.preventDefault();
   if(!(user&&role==="store"))return;
-  const data={name:$("#sName").value.trim(),cat:$("#sCat").value,city:$("#sCity").value,site:safeUrl($("#sSite").value.trim()),insta:safeUrl($("#sInsta").value.trim()),bio:$("#sBio").value.trim().slice(0,400),updatedAt:serverTimestamp()};
+  const data={name:$("#sName").value.trim(),cat:$("#sCat").value,city:$("#sCity").value,site:safeUrl($("#sSite").value.trim()),insta:"",bio:$("#sBio").value.trim().slice(0,400),updatedAt:serverTimestamp()};
   try{await setDoc(doc(db,"stores",user.uid),data);myStore={id:user.uid,...data};renderStPreview();loadStores();toast("تم نشر ملفك")}catch(err){toast(arErr(err))}
 });
 document.addEventListener("click",e=>{
@@ -854,13 +853,13 @@ function openAuth(){
     ${authRole==="admin"?"":`<p class="meta" style="margin:-.3rem 0 .6rem">${ROLE_HINT[authRole]}</p>`}
     <div class="seg" ${authRole==="admin"?"hidden":""}><button type="button" data-amode="login" class="${authMode==="login"?"on":""}">دخول</button><button type="button" data-amode="signup" class="${authMode==="signup"?"on":""}">حساب جديد</button></div>
     <form id="authForm">
-      ${authMode==="signup"&&authRole==="store"?`<div id="storeFields">
-        <label for="aStore">الاسم أو اسم الجهة</label><input id="aStore" required maxlength="60">
+      ${authMode==="signup"&&authRole!=="admin"?`
+        <label for="aName">${authRole==="store"?"الاسم أو اسم الجهة":"الاسم"}</label><input id="aName" required maxlength="60" autocomplete="name">
         <div class="two">
-          <div><label for="aSCat">التخصص</label><select id="aSCat">${CATS.map(x=>`<option>${x}</option>`).join("")}</select></div>
-          <div><label for="aSCity">المدينة</label><select id="aSCity">${CITIES.map(x=>`<option>${x}</option>`).join("")}</select></div>
+          <div><label for="aCat">التخصص</label><select id="aCat">${CATS.map(x=>`<option>${x}</option>`).join("")}</select></div>
+          <div><label for="aCity">المدينة</label><select id="aCity">${CITIES.map(x=>`<option>${x}</option>`).join("")}</select></div>
         </div>
-      </div>`:""}
+        ${authRole==="creator"?`<label for="aWa">رقم الواتساب</label><input id="aWa" required dir="ltr" inputmode="tel" placeholder="05xxxxxxxx" autocomplete="tel">`:""}`:""}
       <label for="aEmail">البريد الإلكتروني</label><input id="aEmail" type="email" required autocomplete="email">
       <label for="aPass">كلمة المرور</label><input id="aPass" type="password" required minlength="6" autocomplete="${authMode==="login"?"current-password":"new-password"}">
       <p class="err" id="aErr"></p>
@@ -877,16 +876,25 @@ async function submitAuth(e){
   const em=$("#aEmail").value.trim(),pw=$("#aPass").value;
   try{
     if(authMode==="signup"){
-      const cr=await createUserWithEmailAndPassword(auth,em,pw);
-      await setDoc(doc(db,"users",cr.user.uid),{role:authRole,email:em,createdAt:serverTimestamp()});
-      role=authRole; renderSub();
-      if(authRole==="store"){
-        const sd={name:$("#aStore").value.trim(),cat:$("#aSCat").value,city:$("#aSCity").value,site:"",insta:"",bio:"",updatedAt:serverTimestamp()};
-        try{await setDoc(doc(db,"stores",cr.user.uid),sd);myStore={id:cr.user.uid,...sd};
-          $("#sName").value=sd.name;$("#sCat").value=sd.cat;$("#sCity").value=sd.city;loadStores()}catch(e){console.error(e)}
-      }
-      toast("تم إنشاء حسابك");
-      closeModal(); location.hash="dashboard";
+      const nm=$("#aName").value.trim(),ct=$("#aCat").value,cy=$("#aCity").value,wa=authRole==="creator"?$("#aWa").value.trim():"";
+      signingUp=true;
+      try{
+        const cr=await createUserWithEmailAndPassword(auth,em,pw);
+        const uid=cr.user.uid;
+        await setDoc(doc(db,"users",uid),{role:authRole,email:em,createdAt:serverTimestamp()});
+        if(authRole==="store"){
+          await setDoc(doc(db,"stores",uid),{name:nm,cat:ct,city:cy,site:"",bio:"",updatedAt:serverTimestamp()});
+        }else{
+          await setDoc(doc(db,"creators",uid),{name:nm,cat:ct,city:cy,gender:"",price:0,bio:"",links:[],avail:true,updatedAt:serverTimestamp()});
+          await setDoc(doc(db,"creators",uid,"private","contact"),{wa});
+        }
+        signingUp=false;
+        await afterAuth(cr.user);
+      }finally{signingUp=false}
+      loadCreators();loadStores();
+      closeModal();
+      toast(authRole==="store"?"تم تسجيلك وظهرت في قائمة طالب الخدمة":"تم تسجيلك وظهرت في قائمة صناع المحتوى");
+      go(authRole==="store"?"home":"campaigns");
     }else{
       const cr=await signInWithEmailAndPassword(auth,em,pw);
       const adm=em.toLowerCase()===ADMIN_EMAIL.toLowerCase();
@@ -902,7 +910,10 @@ async function submitAuth(e){
   }catch(err){$("#aErr").textContent=arErr(err)}
 }
 
-onAuthStateChanged(auth, async u=>{
+let signingUp=false;
+function go(v){if(location.hash==="#"+v)route();else location.hash=v}
+onAuthStateChanged(auth, u=>{if(!signingUp)afterAuth(u)});
+async function afterAuth(u){
   user=u; role=null; isSub=false; subPlan=""; subUntil=null; pending=null; isAdmin=!!(u&&u.email&&u.email.toLowerCase()===ADMIN_EMAIL.toLowerCase());
   if(u){
     try{const d=await getDoc(doc(db,"users",u.uid));role=d.exists()?d.data().role:null}catch(e){}
@@ -913,7 +924,7 @@ onAuthStateChanged(auth, async u=>{
   await loadBank();
   authReady=true;
   renderSub();renderDash();loadCamps();route(true);
-});
+}
 
 /* ---------- routing ---------- */
 let authReady=false;
@@ -1003,7 +1014,7 @@ $("#crForm").addEventListener("submit",async e=>{
   e.preventDefault();
   if(!(user&&role==="creator"))return;
   const links=$("#cLinks").value.split("\n").map(s=>s.trim()).filter(s=>/^https?:\/\//.test(s)).slice(0,10);
-  const data={name:$("#cName").value.trim(),city:$("#cCity").value,cat:$("#cCat").value,gender:$("#cGender").value,price:+$("#cPrice").value,bio:$("#cBio").value.trim().slice(0,400),links,avail:!!dashAvail,updatedAt:serverTimestamp()};
+  const data={name:$("#cName").value.trim(),city:$("#cCity").value,cat:$("#cCat").value,gender:$("#cGender").value,price:+$("#cPrice").value||0,bio:$("#cBio").value.trim().slice(0,400),links,avail:!!dashAvail,updatedAt:serverTimestamp()};
   try{
     await setDoc(doc(db,"creators",user.uid),data);
     await setDoc(doc(db,"creators",user.uid,"private","contact"),{wa:$("#cWa").value.trim()});
