@@ -473,7 +473,7 @@ function renderDash(){
   $("#dashTitle").textContent=cr?"ملف صانع المحتوى":st?"ملف المتجر":"التسجيل";
   $("#dashLead").textContent=cr?"حدّث بياناتك وأسعارك وحالتك بنفسك.":st?"عرّف بمتجرك ليتعرّف عليك صنّاع المحتوى قبل التقديم على حملاتك.":"سجّل مجاناً وحدّث بياناتك بنفسك دون الحاجة لمراسلة الإدارة.";
   if(cr)renderPreview();
-  if(st)renderStPreview();
+  if(st){renderStPreview();$("#dashLead").textContent=myStore?"حدّث بيانات متجرك بنفسك.":"متجرك لا يظهر في «أصحاب المتاجر» حتى تحفظ ملف المتجر.";}
 }
 function renderStPreview(){
   const s=myStore||{id:"x",name:$("#sName").value||"اسم متجرك",cat:$("#sCat").value,city:$("#sCity").value,bio:$("#sBio").value,site:$("#sSite").value,insta:$("#sInsta").value};
@@ -820,7 +820,14 @@ function openAuth(){
     <h3 style="margin-top:0">${authMode==="login"?"تسجيل الدخول":"حساب جديد"}</h3>
     <div class="seg"><button type="button" data-amode="login" class="${authMode==="login"?"on":""}">دخول</button><button type="button" data-amode="signup" class="${authMode==="signup"?"on":""}">حساب جديد</button></div>
     <form id="authForm">
-      ${authMode==="signup"?`<label>نوع الحساب</label><div class="seg"><button type="button" data-arole="store" class="${authRole==="store"?"on":""}">صاحب متجر</button><button type="button" data-arole="creator" class="${authRole==="creator"?"on":""}">صانع محتوى</button></div>`:""}
+      ${authMode==="signup"?`<label>نوع الحساب</label><div class="seg"><button type="button" data-arole="store" class="${authRole==="store"?"on":""}">صاحب متجر</button><button type="button" data-arole="creator" class="${authRole==="creator"?"on":""}">صانع محتوى</button></div>
+      <div id="storeFields" ${authRole==="store"?"":"hidden"}>
+        <label for="aStore">اسم المتجر</label><input id="aStore" required maxlength="60" ${authRole==="store"?"":"disabled"}>
+        <div class="two">
+          <div><label for="aSCat">التخصص</label><select id="aSCat" ${authRole==="store"?"":"disabled"}>${CATS.map(x=>`<option>${x}</option>`).join("")}</select></div>
+          <div><label for="aSCity">المدينة</label><select id="aSCity" ${authRole==="store"?"":"disabled"}>${CITIES.map(x=>`<option>${x}</option>`).join("")}</select></div>
+        </div>
+      </div>`:""}
       <label for="aEmail">البريد الإلكتروني</label><input id="aEmail" type="email" required autocomplete="email">
       <label for="aPass">كلمة المرور</label><input id="aPass" type="password" required minlength="6" autocomplete="${authMode==="login"?"current-password":"new-password"}">
       <p class="err" id="aErr"></p>
@@ -837,6 +844,11 @@ async function submitAuth(e){
       const cr=await createUserWithEmailAndPassword(auth,em,pw);
       await setDoc(doc(db,"users",cr.user.uid),{role:authRole,email:em,createdAt:serverTimestamp()});
       role=authRole;
+      if(authRole==="store"){
+        const sd={name:$("#aStore").value.trim(),cat:$("#aSCat").value,city:$("#aSCity").value,site:"",insta:"",bio:"",updatedAt:serverTimestamp()};
+        try{await setDoc(doc(db,"stores",cr.user.uid),sd);myStore={id:cr.user.uid,...sd};
+          $("#sName").value=sd.name;$("#sCat").value=sd.cat;$("#sCity").value=sd.city;loadStores()}catch(e){console.error(e)}
+      }
       toast("تم إنشاء حسابك");
       closeModal(); location.hash="dashboard";
     }else{
@@ -882,7 +894,8 @@ document.addEventListener("click",async e=>{
   if(t.closest("[data-close]")||t.id==="modal"){closeModal();return}
   if(t.closest("[data-auth]")){authMode="signup";authRole=location.hash==="#dashboard"?"creator":"store";openAuth();return}
   const am=t.closest("[data-amode]"); if(am){authMode=am.dataset.amode;openAuth();return}
-  const ar=t.closest("[data-arole]"); if(ar){authRole=ar.dataset.arole;document.querySelectorAll("[data-arole]").forEach(x=>x.classList.toggle("on",x===ar));return}
+  const ar=t.closest("[data-arole]"); if(ar){authRole=ar.dataset.arole;document.querySelectorAll("[data-arole]").forEach(x=>x.classList.toggle("on",x===ar));
+    const sf=$("#storeFields");if(sf){const on=authRole==="store";sf.hidden=!on;sf.querySelectorAll("input,select").forEach(x=>x.disabled=!on)}return}
   if(t.id==="forgot"){const em=$("#aEmail").value.trim();if(!em){$("#aErr").textContent="اكتب بريدك أولاً";return}
     try{await sendPasswordResetEmail(auth,em);toast("أرسلنا رابط إعادة التعيين لبريدك")}catch(err){$("#aErr").textContent=arErr(err)}return}
   const g=t.closest("[data-go]"); if(g){location.hash=g.dataset.go;return}
