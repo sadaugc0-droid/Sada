@@ -154,7 +154,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
       <a href="#stores" data-v="stores">أصحاب المتاجر</a>
       <a href="#campaigns" data-v="campaigns">الحملات</a>
       <a href="#pricing" data-v="pricing">الباقات</a>
-      <a href="#dashboard" data-v="dashboard">لوحتي</a>
+      <a href="#dashboard" data-v="dashboard">التسجيل</a>
       <a href="#admin" data-v="admin" id="adminLink" hidden>الإدارة</a>
     </nav>
   </div>
@@ -250,7 +250,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
 
 <!-- ADMIN -->
 <section class="view" id="v-admin">
-  <h2 class="h2">لوحة الإدارة</h2>
+  <h2 class="h2">الإدارة</h2>
   <form class="panel" id="bankForm" style="margin-bottom:18px">
     <strong>بيانات التحويل البنكي</strong>
     <p class="meta" style="margin:.2rem 0 0">تظهر لأصحاب المتاجر عند طلب الاشتراك.</p>
@@ -275,7 +275,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
 
 <!-- DASHBOARD -->
 <section class="view" id="v-dashboard">
-  <h2 class="h2" id="dashTitle">لوحتي</h2>
+  <h2 class="h2" id="dashTitle">التسجيل</h2>
   <p class="lead" id="dashLead">سجّل مجاناً وحدّث بياناتك بنفسك دون الحاجة لمراسلة الإدارة.</p>
   <div class="panel" id="dashGate" hidden style="margin-bottom:40px;text-align:center"><p>سجّل دخولك لإنشاء ملفك وتعديله — كصانع محتوى أو صاحب متجر.</p><button class="btn teal" data-auth>تسجيل / دخول</button></div>
   <div class="dash" id="storeBody" hidden>
@@ -470,7 +470,7 @@ function renderSub(){
 function renderDash(){
   const cr=!!(user&&role==="creator"), st=!!(user&&role==="store");
   $("#dashGate").hidden=cr||st; $("#dashBody").hidden=!cr; $("#storeBody").hidden=!st;
-  $("#dashTitle").textContent=cr?"لوحة صانع المحتوى":st?"لوحة المتجر":"لوحتي";
+  $("#dashTitle").textContent=cr?"ملف صانع المحتوى":st?"ملف المتجر":"التسجيل";
   $("#dashLead").textContent=cr?"حدّث بياناتك وأسعارك وحالتك بنفسك.":st?"عرّف بمتجرك ليتعرّف عليك صنّاع المحتوى قبل التقديم على حملاتك.":"سجّل مجاناً وحدّث بياناتك بنفسك دون الحاجة لمراسلة الإدارة.";
   if(cr)renderPreview();
   if(st)renderStPreview();
@@ -560,7 +560,8 @@ async function loadAdmin(){
   $("#adminSubs").innerHTML=subs.empty?'<div class="panel meta">لا يوجد مشتركون.</div>':subs.docs.map(d=>{const r=d.data();const u=r.until?r.until.toDate():null;const live=r.active&&u&&u>new Date();
     return `<div class="job"><div class="top"><div><strong>${esc(r.email)}</strong><div class="meta">${esc(r.plan)} · ${live?"فعّال حتى "+u.toLocaleDateString("ar-SA-u-ca-gregory"):(r.active?"منتهي":"موقوف")}</div></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn teal" data-renew="${d.id}" data-plan-name="${esc(r.plan)}">تجديد ${esc(r.plan)}</button>
-    <button class="btn ghost" data-togglesub="${d.id}" data-active="${r.active?1:0}">${r.active?"إيقاف":"إعادة تفعيل"}</button></div></div></div>`}).join("");
+    <button class="btn ghost" data-togglesub="${d.id}" data-active="${r.active?1:0}">${r.active?"إيقاف":"إعادة تفعيل"}</button>
+    ${live?"":`<button class="trash" type="button" data-delsub="${d.id}" aria-label="حذف اشتراك ${esc(r.email)}">${trashSvg}</button>`}</div></div></div>`}).join("");
 }
 
 /* ---------- stores ---------- */
@@ -905,6 +906,11 @@ document.addEventListener("click",async e=>{
       await setDoc(ref,{active:true,until:Timestamp.fromMillis(Math.max(u,Date.now())+days*864e5)},{merge:true});toast("تم التجديد");loadAdmin()}catch(err){toast(arErr(err))}
     return}
   if(t.closest("[data-copyiban]")){try{await navigator.clipboard.writeText(BANK.iban.replace(/\s/g,""));toast("تم نسخ الآيبان")}catch(err){toast("انسخ الآيبان يدوياً")}return}
+  const ds=t.closest("[data-delsub]"); if(ds){
+    if(!ds.classList.contains("sure")){ds.classList.add("sure");ds.textContent="تأكيد الحذف";setTimeout(()=>{if(ds.isConnected){ds.classList.remove("sure");ds.innerHTML=trashSvg}},4000);return}
+    ds.disabled=true;
+    try{await deleteDoc(doc(db,"subscribers",ds.dataset.delsub));await deleteDoc(doc(db,"subRequests",ds.dataset.delsub)).catch(()=>{});toast("تم حذف الاشتراك");loadAdmin()}catch(err){toast(arErr(err));ds.disabled=false}
+    return}
   const mt=t.closest("[data-memtab]"); if(mt){memTab=mt.dataset.memtab;document.querySelectorAll("[data-memtab]").forEach(x=>x.classList.toggle("on",x===mt));loadMembers();return}
   const du=t.closest("[data-deluser]"); if(du){
     if(!du.classList.contains("sure")){du.classList.add("sure");du.textContent="تأكيد الحذف";setTimeout(()=>{if(du.isConnected){du.classList.remove("sure");du.innerHTML=trashSvg}},4000);return}
