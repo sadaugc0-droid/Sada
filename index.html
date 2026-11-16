@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#EAF7F6; --card:#FFFFFF; --ink:#1E2A36; --muted:#5A5A5A; --line:#DFE6EE;
+  --bg:#D5EFEC; --card:#FFFFFF; --ink:#1E2A36; --muted:#5A5A5A; --line:#DFE6EE;
   --brand:#1D507F; --brand-d:#143A5E; --brand-soft:#E3ECF5;
   --teal:#2F7FB8; --teal-soft:#E1EFF9; --gold:#C98A12;
   --r:16px; --shadow:0 1px 2px rgba(29,80,127,.05),0 6px 20px rgba(29,80,127,.07);
@@ -17,19 +17,19 @@
 body{margin:0;font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
 a{color:inherit}
 button{font:inherit;cursor:pointer;color:inherit}
-input,select,textarea{font:inherit;width:100%;padding:.65rem .8rem;border:1px solid #E2D6C3;border-radius:12px;background:#F5EEE3;color:var(--ink)}
+input,select,textarea{font:inherit;width:100%;padding:.65rem .8rem;border:1px solid #ECE2D3;border-radius:12px;background:#FBF7F0;color:var(--ink)}
 input::placeholder,textarea::placeholder{color:#8A7D6B}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--brand-soft);border-color:var(--brand)}
 label{font-size:.88rem;font-weight:600;display:block;margin:.7rem 0 .3rem}
 .wrap{max-width:1100px;margin:0 auto;padding:0 18px}
 
 /* header */
-header{position:sticky;top:0;z-index:20;background:rgba(214,240,238,.95);backdrop-filter:blur(8px);border-bottom:1px solid #C3E3E0}
+header{position:sticky;top:0;z-index:20;background:rgba(140,208,200,.97);backdrop-filter:blur(8px);border-bottom:1px solid #6FBDB4}
 .nav{display:flex;align-items:center;gap:10px 14px;min-height:62px;flex-wrap:wrap;padding:8px 0}
 .logo{font-weight:700;font-size:1.35rem;display:flex;align-items:center;gap:8px;text-decoration:none}
 .logo img{height:40px;width:auto;display:block}.logo span{display:flex;flex-direction:column;align-items:center;text-align:center;line-height:1.05;color:var(--brand)}.logo small{font-size:.62rem;font-weight:500;color:var(--muted);white-space:nowrap;margin-top:11px;display:block}.logo{flex:none}
 .links{display:flex;gap:4px;margin-inline-start:auto;overflow-x:auto}
-.links a{text-decoration:none;padding:.4rem .75rem;border-radius:999px;font-size:.92rem;color:var(--muted);white-space:nowrap}
+.links a{text-decoration:none;padding:.4rem .75rem;border-radius:999px;font-size:.92rem;color:#1E2A36;white-space:nowrap}
 .links a.on{background:var(--brand);color:#fff}
 .subtag{font-size:.78rem;padding:.25rem .6rem;border-radius:999px;background:var(--teal-soft);color:var(--teal);font-weight:600;white-space:nowrap}
 
@@ -144,6 +144,8 @@ section.view.on{display:block}
 .atabs .n{display:inline-block;min-width:1.4em;margin-inline-start:4px;padding:0 .35em;border-radius:999px;background:rgba(0,0,0,.08);font-size:.78rem}
 .linkbtn{border:0;background:none;color:var(--brand);font-weight:600;text-decoration:underline;padding:0}
 [hidden]{display:none!important}
+header .logo small{color:#1E3A4A}
+header .btn.ghost{background:rgba(255,255,255,.55);border-color:rgba(30,58,74,.25)}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fff;padding:.7rem 1.1rem;border-radius:12px;transition:.25s;z-index:60;font-size:.92rem}
 .toast.on{transform:translateX(-50%) translateY(0)}
 footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);font-size:.85rem}
