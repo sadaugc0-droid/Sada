@@ -455,7 +455,7 @@ async function openProfile(id){
     }catch(e){contactHTML='<p class="meta">تعذّر تحميل بيانات التواصل.</p>'}
   }else{
     contactHTML=`<div class="contacts"><span class="cbtn wa" style="opacity:.35">${WA_SVG}</span><span class="cbtn call" style="opacity:.35">${CALL_SVG}</span></div>
-      ${user?'<p class="meta" style="margin:.4rem 0 0">لفتح التواصل فعّل حسابك <a href="#pricing" style="margin-inline-start:10px;font-weight:700;color:var(--brand)">اضغط هنا</a></p>':'<button class="btn brand" data-auth="store">سجّل كطالب خدمة لفتح التواصل</button>'}`;
+      ${user?'<p class="meta" style="margin:.4rem 0 0">للتفعيل <a href="#pricing" style="margin-inline-start:10px;font-weight:700;color:var(--brand)">اضغط هنا</a></p>':'<button class="btn brand" data-auth="store">سجّل كطالب خدمة لفتح التواصل</button>'}`;
   }
   const unlocked=user&&(isSub||isAdmin||user.uid===c.id);
   $("#sheet").innerHTML=`
@@ -493,7 +493,7 @@ function renderSub(){
   const r0=curRole();
   $("#plans").innerHTML=(r0==="creator"?["creator"]:r0==="store"?["store"]:["store","creator"]).map(planCard).join("");
   $("#payBanner").hidden=!(user&&role&&!isSub&&!isAdmin);
-  $("#payBanner").innerHTML=pending?`طلب التفعيل قيد المراجعة — حوّل المبلغ وأرسل الإيصال. <a href="#pricing">التفاصيل</a>`:`حسابك غير مفعّل — تقدر تتصفح فقط. للتفعيل <a href="#pricing" style="margin-inline-start:10px">اضغط هنا</a>`;
+  $("#payBanner").innerHTML=`حسابك غير مفعّل — تقدر تتصفح فقط. للتفعيل <a href="#pricing" style="margin-inline-start:10px">اضغط هنا</a>`;
   const fmt=d=>d?d.toLocaleDateString("ar-SA-u-ca-gregory",{year:"numeric",month:"long",day:"numeric"}):"";
   $("#subState").textContent=!user?"سجّل دخولك لإدارة اشتراكك.":isSub?((PLANS[subPlan]||{}).once?"حسابك مفعّل ✓":`اشتراكك فعّال — ينتهي في ${fmt(subUntil)}.`):pending?`طلبك «${pending}» قيد المراجعة — حوّل المبلغ وأرسل الإيصال.`:subUntil?`انتهى اشتراكك في ${fmt(subUntil)} — ادفع للتجديد.`:"حسابك غير مفعّل.";
   $("#payBox").innerHTML=(user&&pending&&!isSub)?payHTML(pending):(!user?"":'<p class="meta">الدفع بالتحويل البنكي، ويُفعَّل الاشتراك بعد التأكد من التحويل.</p>');
