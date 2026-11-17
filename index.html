@@ -154,6 +154,8 @@ header .btn.ghost{background:rgba(255,255,255,.55);border-color:rgba(30,58,74,.2
 .cnum{direction:ltr;font-weight:600;color:var(--ink);font-size:.9rem}
 .iconbtn{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--brand)}
 .who-n{overflow:hidden;text-overflow:ellipsis;max-width:120px}.who-r{font-size:.7rem;padding:.1rem .45rem;border-radius:999px;font-weight:600;flex:none}.who-r.r-c{background:#ECEFE3;color:#4A5638}.who-r.r-s{background:var(--brand-soft);color:var(--brand-d)}
+.badge{display:inline-block;min-width:1.4em;padding:0 .4em;border-radius:999px;background:#C0392B;color:#fff;font-size:.75rem;margin-inline-start:4px}
+.rejbox{width:100%;background:#FDF0EC;border:1px solid #F0C9BF;border-radius:12px;padding:10px 12px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fff;padding:.7rem 1.1rem;border-radius:12px;transition:.25s;z-index:60;font-size:.92rem}
 .toast.on{transform:translateX(-50%) translateY(0)}
 footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);font-size:.85rem}
@@ -212,7 +214,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
     <div><h2 class="h2">الحملات الإعلانية</h2><p class="lead" style="margin-bottom:8px">أصحاب الإعلانات ينشرون حملاتهم بميزانية محددة، وصناع المحتوى يتقدّمون عليها.</p></div>
     <button class="btn brand" id="newCamp" type="button">+ حملة جديدة</button>
   </div>
-  <div class="seg" style="max-width:540px"><button type="button" data-ctab="open" class="on">الحملات المفتوحة</button><button type="button" data-ctab="mine" id="tabMine" hidden>حملاتي</button><button type="button" data-ctab="applied" id="tabApplied" hidden>العروض المقدمة</button></div>
+  <div class="seg" style="max-width:540px"><button type="button" data-ctab="open" class="on">الحملات المفتوحة</button><button type="button" data-ctab="mine" id="tabMine" hidden>حملاتي</button><button type="button" data-ctab="applied" id="tabApplied" hidden>العروض المقدمة <span class="n badge" id="appliedBadge" hidden>0</span></button></div>
   <div class="filters cfilters">
     <select id="cfCat" aria-label="التخصص"><option value="">كل التخصصات</option></select>
     <select id="cfCity" aria-label="المدينة"><option value="">كل المدن</option></select>
@@ -407,6 +409,7 @@ const WA_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 const CALL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>';
 const contactBtns=n=>n?`<span class="cbtns"><a class="cbtn wa" href="${waLink(n)}" target="_blank" rel="noopener" aria-label="واتساب ${esc(n)}">${WA_SVG}</a><a class="cbtn call" href="${telLink(n)}" aria-label="اتصال ${esc(n)}">${CALL_SVG}</a><span class="cnum">${esc(n)}</span></span>`:'<span class="meta">لا يوجد رقم</span>';
 const roleTag=(r,no)=>r?`<span class="who-r ${r==="creator"?"r-c":"r-s"}" style="margin-inline-start:6px;vertical-align:middle">${r==="creator"?"صانع محتوى":"طالب إعلان"}${no?` · ${esc(no)}`:""}</span>`:"";
+const nameOf=id=>{const x=creators.find(y=>y.id===id)||stores.find(y=>y.id===id);return x&&x.name?x.name:""};
 const noOf=id=>{const x=creators.find(y=>y.id===id)||stores.find(y=>y.id===id);return x&&x.no?x.no:""};
 const waLink=n=>{n=String(n).replace(/\D/g,"");if(n.startsWith("05"))n="966"+n.slice(1);return "https://wa.me/"+n};
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),2600)}
@@ -621,12 +624,12 @@ async function loadAdmin(){
   loadMembers().catch(e=>console.error(e));
   const reqs=await getDocs(collection(db,"subRequests"));
   $("#nReqs").textContent=reqs.size;
-  $("#adminReqs").innerHTML=reqs.empty?'<div class="panel meta">لا توجد طلبات.</div>':reqs.docs.map(d=>{const r=d.data();return `<div class="job"><div class="top"><div><strong>${esc(r.email)}</strong>${roleTag((PLANS[r.plan]||{}).role,noOf(d.id))}<div class="meta">الباقة: ${esc(r.plan)} · ${(PLANS[r.plan]||{}).price||"—"} ريال</div></div>
+  $("#adminReqs").innerHTML=reqs.empty?'<div class="panel meta">لا توجد طلبات.</div>':reqs.docs.map(d=>{const r=d.data();return `<div class="job"><div class="top"><div><strong>${esc(nameOf(d.id)||r.email)}</strong>${roleTag((PLANS[r.plan]||{}).role,noOf(d.id))}<div class="meta">${esc(r.email)} · الباقة: ${esc(r.plan)} · ${(PLANS[r.plan]||{}).price||"—"} ريال</div></div>
     <div style="display:flex;gap:6px"><button class="btn teal" data-activate="${d.id}" data-plan-name="${esc(r.plan)}" data-email="${esc(r.email)}">تفعيل</button><button class="btn ghost" data-rejreq="${d.id}">حذف</button></div></div></div>`}).join("");
   const subs=await getDocs(collection(db,"subscribers"));
   $("#nSubs").textContent=subs.size;
   $("#adminSubs").innerHTML=subs.empty?'<div class="panel meta">لا يوجد مشتركون.</div>':subs.docs.map(d=>{const r=d.data();const u=r.until?r.until.toDate():null;const live=r.active&&u&&u>new Date();
-    return `<div class="job"><div class="top"><div><strong>${esc(r.email)}</strong>${roleTag((PLANS[r.plan]||{}).role,noOf(d.id))}<div class="meta">${esc(r.plan)} · ${live?"فعّال حتى "+u.toLocaleDateString("ar-SA-u-ca-gregory"):(r.active?"منتهي":"موقوف")}</div></div>
+    return `<div class="job"><div class="top"><div><strong>${esc(nameOf(d.id)||r.email)}</strong>${roleTag((PLANS[r.plan]||{}).role,noOf(d.id))}<div class="meta">${esc(r.email)} · ${esc(r.plan)} · ${live?"فعّال حتى "+u.toLocaleDateString("ar-SA-u-ca-gregory"):(r.active?"منتهي":"موقوف")}</div></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn teal" data-renew="${d.id}" data-plan-name="${esc(r.plan)}">تجديد ${esc(r.plan)}</button>
     <button class="btn ghost" data-togglesub="${d.id}" data-active="${r.active?1:0}">${r.active?"إيقاف":"إعادة تفعيل"}</button>
     ${live?"":`<button class="trash" type="button" data-delsub="${d.id}" aria-label="حذف اشتراك ${esc(r.email)}">${trashSvg}</button>`}</div></div></div>`}).join("");
@@ -672,6 +675,7 @@ document.addEventListener("click",e=>{
 });
 
 /* ---------- campaigns ---------- */
+const REJ_REASONS=["السعر أعلى من الميزانية","لا يناسب طبيعة الحملة","تم اختيار صانع محتوى آخر","الأعمال السابقة لا تناسبنا","أخرى"];
 const PLATFORMS=["تيك توك","سناب شات","إنستغرام","يوتيوب","إكس","حضوري"];
 const CTYPES=["تجربة منتج","فتح صندوق","مراجعة","تصوير منتج","طريقة استخدام","أخرى"];
 const DURS=["15 ثانية","30 ثانية","60 ثانية","أكثر من دقيقة"];
@@ -692,10 +696,26 @@ async function loadCamps(){
   myApps={};
   if(user&&role==="creator"){
     await Promise.all(camps.map(async c=>{try{const a=await getDoc(doc(db,"campaigns",c.id,"applications",user.uid));if(a.exists())myApps[c.id]=a.data()}catch(e){}}));
+    notifyDecisions();
   }
   renderCamps(); renderStores();
 }
 
+function seenKey(){return "sada_seen_"+(user?user.uid:"")}
+function notifyDecisions(){
+  let seen={};try{seen=JSON.parse(localStorage.getItem(seenKey())||"{}")}catch(e){}
+  const fresh=Object.entries(myApps).filter(([cid,a])=>(a.status==="rejected"||a.status==="accepted")&&seen[cid]!==a.status);
+  const b=$("#appliedBadge"); if(b){b.textContent=fresh.length;b.hidden=!fresh.length}
+  if(fresh.length){
+    const rej=fresh.filter(([,a])=>a.status==="rejected").length, acc=fresh.length-rej;
+    toast([acc?`تم قبول ${acc} من عروضك`:"",rej?`تم رفض ${rej} من عروضك`:""].filter(Boolean).join(" — ")+" — افتح «العروض المقدمة»");
+  }
+}
+function markDecisionsSeen(){
+  const seen={};Object.entries(myApps).forEach(([cid,a])=>{if(a.status!=="pending")seen[cid]=a.status});
+  try{localStorage.setItem(seenKey(),JSON.stringify(seen))}catch(e){}
+  const b=$("#appliedBadge");if(b)b.hidden=true;
+}
 function campCard(c){
   const st=campState(c), mine=user&&(c.owner===user.uid||isAdmin), app=myApps[c.id];
   const stLabel=st==="open"?"مفتوحة":st==="expired"?"انتهى التقديم":"مغلقة";
@@ -705,7 +725,7 @@ function campCard(c){
       ${st==="open"?`<button class="btn ghost" type="button" data-closecamp="${esc(c.id)}">إغلاق التقديم</button>`:""}
       <button class="trash" type="button" data-delcamp="${esc(c.id)}" aria-label="حذف الحملة">${trashSvg}</button>`;
   }else if(app){
-    actions=app.status==="accepted"?`<span class="pill" style="background:#E3F6EA;color:#17733B">تم قبولك ✓</span><span id="sc-${esc(c.id)}"><button class="btn teal" type="button" data-storecontact="${esc(c.owner)}" data-box="sc-${esc(c.id)}">تواصل مع صاحب الحملة</button></span>`:'<span class="pill">تقدّمت — قيد المراجعة</span>';
+    actions=app.status==="accepted"?`<span class="pill" style="background:#E3F6EA;color:#17733B">تم قبولك ✓</span><span id="sc-${esc(c.id)}"><button class="btn teal" type="button" data-storecontact="${esc(c.owner)}" data-box="sc-${esc(c.id)}">تواصل مع صاحب الحملة</button></span>`:app.status==="rejected"?`<div class="rejbox"><span class="pill" style="background:#F4E4E0;color:#A0381C">تم رفض عرضك</span>${app.reason?`<p style="margin:.4rem 0 0"><b>السبب:</b> ${esc(app.reason)}</p>`:""}</div>`:'<span class="pill">تقدّمت — قيد المراجعة</span>';
   }else if(st==="open"){
     if(!user)actions='<button class="btn brand" type="button" data-auth-creator>سجّل كصانع محتوى للتقديم</button>';
     else if(role==="creator")actions=`<button class="btn brand" type="button" data-apply="${esc(c.id)}">قدّم عرضك</button>`;
@@ -831,7 +851,7 @@ async function openApps(cid){
       ${a.msg?`<p style="margin:.4rem 0;white-space:pre-line">${esc(a.msg)}</p>`:""}
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="ap-${esc(a.id)}">
         ${creators.find(x=>x.id===a.id)?`<button class="btn ghost" type="button" data-open="${esc(a.id)}">عرض الملف</button>`:""}
-        ${a.status==="accepted"?`<button class="btn teal" type="button" data-wa="${esc(a.id)}">تواصل</button>`:`<button class="btn brand" type="button" data-accept="${esc(cid)}|${esc(a.id)}">قبول</button><button class="btn ghost" type="button" data-rejapp="${esc(cid)}|${esc(a.id)}">رفض</button>`}
+        ${a.status==="rejected"?`<span class="pill" style="background:#F4E4E0;color:#A0381C">مرفوض${a.reason?": "+esc(a.reason):""}</span>`:a.status==="accepted"?`<button class="btn teal" type="button" data-wa="${esc(a.id)}">تواصل</button>`:`<button class="btn brand" type="button" data-accept="${esc(cid)}|${esc(a.id)}">قبول</button><button class="btn ghost" type="button" data-rejapp="${esc(cid)}|${esc(a.id)}">رفض</button>`}
       </div></div>`).join(""):'<div class="panel meta">لا يوجد متقدمون بعد.</div>';
   }catch(err){$("#appsList").textContent=arErr(err)}
 }
@@ -860,7 +880,7 @@ $("#newCamp").onclick=()=>{
 };
 document.addEventListener("click",async e=>{
   const t=e.target;
-  const tb=t.closest("[data-ctab]"); if(tb){ctab=tb.dataset.ctab;ownerFilter="";document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x===tb));renderCamps();return}
+  const tb=t.closest("[data-ctab]"); if(tb){ctab=tb.dataset.ctab;ownerFilter="";if(ctab==="applied")markDecisionsSeen();document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x===tb));renderCamps();return}
   if(t.closest("[data-auth-creator]")){authMode="signup";authRole="creator";openAuth();return}
   const ap=t.closest("[data-apply]"); if(ap){openApply(ap.dataset.apply);return}
   const as=t.closest("[data-apps]"); if(as){openApps(as.dataset.apps);return}
@@ -870,8 +890,19 @@ document.addEventListener("click",async e=>{
     dc.disabled=true;try{await deleteCampaign(dc.dataset.delcamp);toast("تم حذف الحملة");loadCamps()}catch(err){toast(arErr(err));dc.disabled=false}return}
   const acc=t.closest("[data-accept]"); if(acc){const [cid,uid]=acc.dataset.accept.split("|");
     try{await setDoc(doc(db,"campaigns",cid,"applications",uid),{status:"accepted"},{merge:true});toast("تم القبول");showWa(uid)}catch(err){toast(arErr(err))}return}
-  const rja=t.closest("[data-rejapp]"); if(rja){const [cid,uid]=rja.dataset.rejapp.split("|");
-    try{await deleteDoc(doc(db,"campaigns",cid,"applications",uid));const b=$("#ap-"+uid);if(b)b.closest(".job").remove();toast("تم رفض التقديم")}catch(err){toast(arErr(err))}return}
+  const rja=t.closest("[data-rejapp]"); if(rja){const [cid,uid]=rja.dataset.rejapp.split("|");const b=$("#ap-"+uid);if(!b)return;
+    b.innerHTML=`<div style="width:100%">
+      <label for="rr-${esc(uid)}">سبب الرفض</label>
+      <select id="rr-${esc(uid)}">${REJ_REASONS.map(x=>`<option>${x}</option>`).join("")}</select>
+      <textarea id="rt-${esc(uid)}" rows="2" maxlength="200" placeholder="توضيح إضافي (اختياري)" style="margin-top:6px"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px"><button class="btn brand" type="button" data-rejconfirm="${esc(cid)}|${esc(uid)}">تأكيد الرفض</button><button class="btn ghost" type="button" data-apps="${esc(cid)}">إلغاء</button></div></div>`;
+    return}
+  const rjc=t.closest("[data-rejconfirm]"); if(rjc){const [cid,uid]=rjc.dataset.rejconfirm.split("|");
+    const r1=$("#rr-"+uid).value, r2=$("#rt-"+uid).value.trim();
+    const reason=(r1==="أخرى"&&r2)?r2:(r2?`${r1} — ${r2}`:r1);
+    rjc.disabled=true;
+    try{await setDoc(doc(db,"campaigns",cid,"applications",uid),{status:"rejected",reason:reason.slice(0,250),decidedAt:serverTimestamp()},{merge:true});toast("تم رفض العرض وإشعار صانع المحتوى");openApps(cid)}catch(err){toast(arErr(err));rjc.disabled=false}
+    return}
   const w=t.closest("[data-wa]"); if(w){showWa(w.dataset.wa);return}
 });
 
@@ -1019,7 +1050,7 @@ document.addEventListener("click",async e=>{
   const au=t.closest("[data-auth]"); if(au){authMode="signup";authRole=au.dataset.auth==="creator"?"creator":"store";openAuth();return}
   const cp=t.closest("[data-complete]"); if(cp){authMode="complete";authRole=cp.dataset.complete;openAuth();return}
   if(t.closest("#whoTag")){go(isAdmin?"admin":"dashboard");return}
-  const gt=t.closest("[data-gotab]"); if(gt){ownerFilter="";ctab=gt.dataset.gotab;document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x.dataset.ctab===ctab));go("campaigns");renderCamps();return}
+  const gt=t.closest("[data-gotab]"); if(gt){ownerFilter="";ctab=gt.dataset.gotab;if(ctab==="applied")markDecisionsSeen();document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x.dataset.ctab===ctab));go("campaigns");renderCamps();return}
   if(t.closest("[data-newcamp]")){$("#newCamp").click();return}
   const scn=t.closest("[data-storecontact]"); if(scn){
     try{const d=await getDoc(doc(db,"stores",scn.dataset.storecontact,"private","contact"));const box=document.getElementById(scn.dataset.box);
