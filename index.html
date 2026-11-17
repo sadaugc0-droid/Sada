@@ -146,6 +146,11 @@ section.view.on{display:block}
 [hidden]{display:none!important}
 header .logo small{color:#1E3A4A}
 header .btn.ghost{background:rgba(255,255,255,.55);border-color:rgba(30,58,74,.25)}
+.paybanner{background:#FFF4D6;color:#6B4A00;text-align:center;padding:.6rem 1rem;font-size:.9rem;border-bottom:1px solid #F0D98C}.paybanner a{color:#6B4A00;font-weight:700}
+.cbtns{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cbtn{display:inline-grid;place-items:center;width:48px;height:48px;border-radius:14px;color:#fff;text-decoration:none;flex:none}
+.cbtn.wa{background:#1FA855}.cbtn.call{background:#2F6FB3}.cbtn svg{width:24px;height:24px}
+.cnum{direction:ltr;font-weight:600;color:var(--ink);font-size:.9rem}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fff;padding:.7rem 1.1rem;border-radius:12px;transition:.25s;z-index:60;font-size:.92rem}
 .toast.on{transform:translateX(-50%) translateY(0)}
 footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);font-size:.85rem}
@@ -167,11 +172,12 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
       <a href="#home" data-v="home" data-for="guest store admin">صناع المحتوى</a>
       <a href="#stores" data-v="stores" data-for="guest creator admin">طالب الخدمة</a>
       <a href="#campaigns" data-v="campaigns" data-for="guest creator store admin">الحملات</a>
-      <a href="#pricing" data-v="pricing" data-for="guest store admin">الباقات</a>
+      <a href="#pricing" data-v="pricing" data-for="guest creator store admin">الرسوم</a>
       <a href="#admin" data-v="admin" data-for="admin" id="adminLink">الإدارة</a>
     </nav>
   </div>
 </header>
+<div class="paybanner" id="payBanner" hidden></div>
 
 <main class="wrap">
 
@@ -228,33 +234,11 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
 
 <!-- PRICING -->
 <section class="view" id="v-pricing">
-  <h2 class="h2">الباقات</h2>
-  <p class="lead">التصفح مجاني. الاشتراك يفتح أزرار التواصل المباشر مع كل صناع المحتوى ونشر الحملات الإعلانية.</p>
-  <div class="plans">
-    <div class="panel plan">
-      <strong>مجاني</strong><div class="amt">0 <small>ريال</small></div>
-      <ul><li>تصفح كل صناع المحتوى</li><li>مشاهدة نماذج الأعمال والأسعار</li><li>التواصل مقفل</li></ul>
-      <button class="btn ghost block" disabled>باقتك الحالية</button>
-    </div>
-    <div class="panel plan best">
-      <span class="tag">الأكثر طلباً</span>
-      <strong>شهري</strong><div class="amt">99 <small>ريال / شهر</small></div>
-      <ul><li>تواصل مباشر غير محدود</li><li>نشر حملات إعلانية واستقبال المتقدمين</li><li>إلغاء في أي وقت</li></ul>
-      <button class="btn brand block" data-plan="شهري">اشترك الآن</button>
-    </div>
-    <div class="panel plan">
-      <strong>ربع سنوي</strong><div class="amt">249 <small>ريال</small></div>
-      <ul><li>كل مزايا الشهري</li><li>توفير 16%</li></ul>
-      <button class="btn block" data-plan="ربع سنوي">اشترك</button>
-    </div>
-    <div class="panel plan">
-      <strong>سنوي</strong><div class="amt">899 <small>ريال</small></div>
-      <ul><li>كل مزايا الشهري</li><li>توفير 24%</li><li>شارة «حساب موثوق»</li></ul>
-      <button class="btn block" data-plan="سنوي">اشترك</button>
-    </div>
-  </div>
+  <h2 class="h2">الرسوم</h2>
+  <p class="lead">التصفح مجاني للجميع. التواصل المباشر والنشر والتقديم بعد سداد الرسوم.</p>
+  <div class="plans" id="plans"></div>
   <div class="panel" style="margin-bottom:40px">
-    <strong>إدارة الاشتراك</strong>
+    <strong>حالة حسابك</strong>
     <p class="meta" id="subState">لا يوجد اشتراك فعّال.</p>
     <div id="payBox"></div>
   </div>
@@ -311,7 +295,11 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
       </div>
       <div class="two">
         <div><label for="sCity">المدينة</label><select id="sCity"></select></div>
+        <div><label for="sWa">رقم الجوال</label><input id="sWa" required dir="ltr" inputmode="tel" placeholder="05xxxxxxxx"></div>
+      </div>
+      <div class="two">
         <div><label for="sSite">رابط الموقع أو الحساب (اختياري)</label><input id="sSite" type="url" dir="ltr" placeholder="https://"></div>
+        <div></div>
       </div>
       <label for="sBio">نبذة تعريفية</label><textarea id="sBio" rows="3" maxlength="400" placeholder="ما نشاطك؟ ومن جمهورك؟"></textarea>
       <button class="btn teal block" style="margin-top:12px">حفظ البيانات</button>
@@ -383,7 +371,9 @@ const ADMIN_EMAIL = "sada.ugc0@gmail.com";
 /* بيانات التحويل البنكي: تُعبّأ من صفحة الإدارة */
 let BANK = { bank:"", holder:"", iban:"", wa:"" };
 /* الباقات: السعر بالريال والمدة بالأيام */
-const PLANS = { "شهري":{price:99,days:30}, "ربع سنوي":{price:249,days:90}, "سنوي":{price:899,days:365} };
+const PLANS = { "رسوم الدخول":{price:30,days:36500,role:"store",once:true}, "اشتراك شهري":{price:99,days:30,role:"creator"},
+  "شهري":{price:99,days:30}, "ربع سنوي":{price:249,days:90}, "سنوي":{price:899,days:365} };
+const PLAN_FOR={store:"رسوم الدخول",creator:"اشتراك شهري"};
 /* ========================================= */
 
 const app = initializeApp(firebaseConfig);
@@ -401,6 +391,10 @@ const $=s=>document.querySelector(s);
 const col=()=>COLORS[0];
 const initials=n=>String(n||"؟").split(" ").map(w=>w[0]).slice(0,2).join(" ");
 const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const telLink=n=>{n=String(n).replace(/\D/g,"");if(n.startsWith("05"))n="966"+n.slice(1);return "tel:+"+n};
+const WA_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/><path d="M9 9.5c.3 1.6 1.9 3.4 3.6 4.1l1.2-1.1 2 1-.4 1.6c-3.2.3-6.9-3.2-7.1-6.3l1.6-.5 1 2z"/></svg>';
+const CALL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>';
+const contactBtns=n=>n?`<span class="cbtns"><a class="cbtn wa" href="${waLink(n)}" target="_blank" rel="noopener" aria-label="واتساب ${esc(n)}">${WA_SVG}</a><a class="cbtn call" href="${telLink(n)}" aria-label="اتصال ${esc(n)}">${CALL_SVG}</a><span class="cnum">${esc(n)}</span></span>`:'<span class="meta">لا يوجد رقم</span>';
 const waLink=n=>{n=String(n).replace(/\D/g,"");if(n.startsWith("05"))n="966"+n.slice(1);return "https://wa.me/"+n};
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),2600)}
 const fill=(sel,arr)=>sel.insertAdjacentHTML("beforeend",arr.map(x=>`<option>${x}</option>`).join(""));
@@ -457,11 +451,11 @@ async function openProfile(id){
     try{
       const d=await getDoc(doc(db,"creators",c.id,"private","contact"));
       const wa=d.exists()?d.data().wa:"";
-      contactHTML=wa?`<div class="contacts"><a class="contact wa" href="${waLink(wa)}" target="_blank" rel="noopener">واتساب · ${esc(wa)}</a></div><p class="meta">الاتفاق والدفع بينك وبين صانع المحتوى مباشرة.</p>`:'<p class="meta">لا يوجد رقم تواصل.</p>';
+      contactHTML=wa?`<div class="contacts">${contactBtns(wa)}</div><p class="meta">الاتفاق والدفع بينك وبين صانع المحتوى مباشرة.</p>`:'<p class="meta">لا يوجد رقم تواصل.</p>';
     }catch(e){contactHTML='<p class="meta">تعذّر تحميل بيانات التواصل.</p>'}
   }else{
-    contactHTML=`<div class="contacts"><span class="contact locked">واتساب ••••</span><span class="contact locked">إنستغرام ••••</span></div>
-      ${user?'<button class="btn brand" data-go="pricing">اشترك لفتح التواصل المباشر</button>':'<button class="btn brand" data-auth>سجّل دخولك ثم اشترك لفتح التواصل</button>'}`;
+    contactHTML=`<div class="contacts"><span class="cbtn wa" style="opacity:.35">${WA_SVG}</span><span class="cbtn call" style="opacity:.35">${CALL_SVG}</span></div>
+      ${user?'<button class="btn brand" data-go="pricing">ادفع الرسوم لفتح التواصل</button>':'<button class="btn brand" data-auth="store">سجّل كطالب خدمة لفتح التواصل</button>'}`;
   }
   const unlocked=user&&(isSub||isAdmin||user.uid===c.id);
   $("#sheet").innerHTML=`
@@ -482,10 +476,26 @@ async function openProfile(id){
 function closeModal(){$("#modal").classList.remove("on")}
 
 
+function planCard(r){
+  const name=PLAN_FOR[r], p=PLANS[name], mine=user&&role===r;
+  const feats=r==="store"?["تواصل مباشر مع كل صناع المحتوى (اتصال وواتساب)","نشر حملات إعلانية واستقبال العروض","تدفع مرة واحدة فقط"]
+    :["التقديم على الحملات الإعلانية","تواصل مباشر مع طالبي الخدمة","يتجدد شهرياً بعد موافقة الإدارة"];
+  let btn="";
+  if(!user)btn=`<button class="btn brand block" type="button" data-auth="${r}">سجّل كـ${ROLE_NAME[r]}</button>`;
+  else if(mine)btn=isSub?'<button class="btn ghost block" type="button" disabled>مفعّل ✓</button>':`<button class="btn brand block" type="button" data-plan="${name}">ادفع الآن</button>`;
+  return `<div class="panel plan${mine?" best":""}">
+    <strong>${r==="store"?"طالب الخدمة":"صانع المحتوى"}</strong>
+    <div class="amt">${p.price} <small>ريال ${p.once?"مرة واحدة":"/ شهر"}</small></div>
+    <ul>${feats.map(f=>`<li>${f}</li>`).join("")}</ul>${btn}</div>`;
+}
 function renderSub(){
   $("#subTag").hidden=!isSub;
+  const r0=curRole();
+  $("#plans").innerHTML=(r0==="creator"?["creator"]:r0==="store"?["store"]:["store","creator"]).map(planCard).join("");
+  $("#payBanner").hidden=!(user&&role&&!isSub&&!isAdmin);
+  $("#payBanner").innerHTML=pending?`طلب التفعيل قيد المراجعة — حوّل المبلغ وأرسل الإيصال. <a href="#pricing">التفاصيل</a>`:`حسابك غير مفعّل — تقدر تتصفح فقط. <a href="#pricing">ادفع ${role&&PLANS[PLAN_FOR[role]]?PLANS[PLAN_FOR[role]].price:""} ريال لتفعيل التواصل</a>`;
   const fmt=d=>d?d.toLocaleDateString("ar-SA-u-ca-gregory",{year:"numeric",month:"long",day:"numeric"}):"";
-  $("#subState").textContent=!user?"سجّل دخولك لإدارة اشتراكك.":isSub?`اشتراكك فعّال — الباقة: ${subPlan} — ينتهي في ${fmt(subUntil)}.`:pending?`طلبك للباقة «${pending}» قيد المراجعة — حوّل المبلغ وأرسل الإيصال.`:subUntil?`انتهى اشتراكك في ${fmt(subUntil)} — اختر باقة للتجديد.`:"لا يوجد اشتراك فعّال.";
+  $("#subState").textContent=!user?"سجّل دخولك لإدارة اشتراكك.":isSub?((PLANS[subPlan]||{}).once?"حسابك مفعّل ✓":`اشتراكك فعّال — ينتهي في ${fmt(subUntil)}.`):pending?`طلبك «${pending}» قيد المراجعة — حوّل المبلغ وأرسل الإيصال.`:subUntil?`انتهى اشتراكك في ${fmt(subUntil)} — ادفع للتجديد.`:"حسابك غير مفعّل.";
   $("#payBox").innerHTML=(user&&pending&&!isSub)?payHTML(pending):(!user?"":'<p class="meta">الدفع بالتحويل البنكي، ويُفعَّل الاشتراك بعد التأكد من التحويل.</p>');
   $("#authBtn").hidden=!user; $("#authBox").hidden=!!user;
   $("#adminLogin").hidden=!!user;
@@ -518,7 +528,8 @@ async function loadMine(){
   if(user&&role==="store"){
     try{const d=await getDoc(doc(db,"stores",user.uid));
       if(d.exists()){myStore={id:d.id,...d.data()};$("#sName").value=myStore.name||"";$("#sCat").value=myStore.cat||CATS[0];$("#sCity").value=myStore.city||CITIES[0];
-        $("#sSite").value=myStore.site||myStore.insta||"";$("#sBio").value=myStore.bio||""}}catch(e){}
+        $("#sSite").value=myStore.site||myStore.insta||"";
+        try{const p=await getDoc(doc(db,"stores",user.uid,"private","contact"));if(p.exists())$("#sWa").value=p.data().wa||""}catch(e){}$("#sBio").value=myStore.bio||""}}catch(e){}
     return;
   }
   if(!(user&&role==="creator"))return;
@@ -576,6 +587,7 @@ async function deleteMember(uid){
   await deleteDoc(doc(db,"creators",uid)).catch(()=>{});
   await deleteDoc(doc(db,"subscribers",uid)).catch(()=>{});
   await deleteDoc(doc(db,"subRequests",uid)).catch(()=>{});
+  await deleteDoc(doc(db,"stores",uid,"private","contact")).catch(()=>{});
   await deleteDoc(doc(db,"stores",uid)).catch(()=>{});
   await deleteDoc(doc(db,"users",uid));
 }
@@ -614,6 +626,7 @@ function storeCard(s,preview){
     ${site||insta?`<div class="slinks">${site?`<a href="${esc(site)}" target="_blank" rel="noopener">الموقع / الحساب</a>`:""}${insta?`<a href="${esc(insta)}" target="_blank" rel="noopener">الحساب</a>`:""}</div>`:""}
     <div class="row" style="justify-content:space-between"><span class="pill">${open?`${open} حملة مفتوحة`:"لا توجد حملات مفتوحة"}</span>
       ${preview?"":`<button class="btn ghost" type="button" data-storecamps="${esc(s.id)}">حملاته</button>`}</div>
+    ${preview||!(user&&(isSub||isAdmin)&&role!=="store")?"":`<div id="stc-${esc(s.id)}"><button class="btn teal" type="button" data-storecontact="${esc(s.id)}" data-box="stc-${esc(s.id)}">تواصل</button></div>`}
   </article>`;
 }
 function renderStores(){
@@ -627,7 +640,7 @@ $("#stForm").addEventListener("submit",async e=>{
   e.preventDefault();
   if(!(user&&role==="store"))return;
   const data={name:$("#sName").value.trim(),cat:$("#sCat").value,city:$("#sCity").value,site:safeUrl($("#sSite").value.trim()),insta:"",bio:$("#sBio").value.trim().slice(0,400),updatedAt:serverTimestamp()};
-  try{await setDoc(doc(db,"stores",user.uid),data);myStore={id:user.uid,...data};renderStPreview();loadStores();toast("تم نشر ملفك")}catch(err){toast(arErr(err))}
+  try{await setDoc(doc(db,"stores",user.uid),data);await setDoc(doc(db,"stores",user.uid,"private","contact"),{wa:$("#sWa").value.trim()});myStore={id:user.uid,...data};renderStPreview();loadStores();toast("تم نشر ملفك")}catch(err){toast(arErr(err))}
 });
 document.addEventListener("click",e=>{
   const sc=e.target.closest("[data-storecamps]"); if(sc){ownerFilter=sc.dataset.storecamps;ctab="all";location.hash="campaigns";renderCamps();return}
@@ -668,10 +681,10 @@ function campCard(c){
       ${st==="open"?`<button class="btn ghost" type="button" data-closecamp="${esc(c.id)}">إغلاق التقديم</button>`:""}
       <button class="trash" type="button" data-delcamp="${esc(c.id)}" aria-label="حذف الحملة">${trashSvg}</button>`;
   }else if(app){
-    actions=app.status==="accepted"?'<span class="pill" style="background:#E3F6EA;color:#17733B">تم قبولك ✓ سيتواصل معك صاحب الإعلان</span>':'<span class="pill">تقدّمت — قيد المراجعة</span>';
+    actions=app.status==="accepted"?`<span class="pill" style="background:#E3F6EA;color:#17733B">تم قبولك ✓</span><span id="sc-${esc(c.id)}"><button class="btn teal" type="button" data-storecontact="${esc(c.owner)}" data-box="sc-${esc(c.id)}">تواصل مع صاحب الحملة</button></span>`:'<span class="pill">تقدّمت — قيد المراجعة</span>';
   }else if(st==="open"){
     if(!user)actions='<button class="btn brand" type="button" data-auth-creator>سجّل كصانع محتوى للتقديم</button>';
-    else if(role==="creator")actions=`<button class="btn brand" type="button" data-apply="${esc(c.id)}">تقدّم للحملة</button>`;
+    else if(role==="creator")actions=isSub?`<button class="btn brand" type="button" data-apply="${esc(c.id)}">قدّم عرضك</button>`:'<button class="btn brand" type="button" data-go="pricing">فعّل اشتراكك لتقديم عرض</button>';
   }
   return `<article class="camp">
     <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
@@ -800,7 +813,7 @@ async function openApps(cid){
       ${a.msg?`<p style="margin:.4rem 0;white-space:pre-line">${esc(a.msg)}</p>`:""}
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="ap-${esc(a.id)}">
         ${creators.find(x=>x.id===a.id)?`<button class="btn ghost" type="button" data-open="${esc(a.id)}">عرض الملف</button>`:""}
-        ${a.status==="accepted"?`<button class="btn teal" type="button" data-wa="${esc(a.id)}">تواصل واتساب</button>`:`<button class="btn brand" type="button" data-accept="${esc(cid)}|${esc(a.id)}">قبول</button><button class="btn ghost" type="button" data-rejapp="${esc(cid)}|${esc(a.id)}">رفض</button>`}
+        ${a.status==="accepted"?`<button class="btn teal" type="button" data-wa="${esc(a.id)}">تواصل</button>`:`<button class="btn brand" type="button" data-accept="${esc(cid)}|${esc(a.id)}">قبول</button><button class="btn ghost" type="button" data-rejapp="${esc(cid)}|${esc(a.id)}">رفض</button>`}
       </div></div>`).join(""):'<div class="panel meta">لا يوجد متقدمون بعد.</div>';
   }catch(err){$("#appsList").textContent=arErr(err)}
 }
@@ -808,7 +821,7 @@ async function openApps(cid){
 async function showWa(uid){
   const box=$("#ap-"+uid);if(!box)return;
   try{const d=await getDoc(doc(db,"creators",uid,"private","contact"));const wa=d.exists()?d.data().wa:"";
-    const btn=box.querySelector("[data-wa],[data-accept]");const html=wa?`<a class="contact wa" href="${waLink(wa)}" target="_blank" rel="noopener">واتساب · ${esc(wa)}</a>`:'<span class="meta">لا يوجد رقم</span>';
+    const btn=box.querySelector("[data-wa],[data-accept]");const html=contactBtns(wa);
     if(btn)btn.outerHTML=html;else box.insertAdjacentHTML("beforeend",html);
     const rj=box.querySelector("[data-rejapp]");if(rj)rj.remove();
   }catch(err){toast(arErr(err))}
@@ -860,7 +873,7 @@ function openAuth(){
           <div><label for="aCat">التخصص</label><select id="aCat">${CATS.map(x=>`<option>${x}</option>`).join("")}</select></div>
           <div><label for="aCity">المدينة</label><select id="aCity">${CITIES.map(x=>`<option>${x}</option>`).join("")}</select></div>
         </div>
-        ${authRole==="creator"?`<label for="aWa">رقم الواتساب</label><input id="aWa" required dir="ltr" inputmode="tel" placeholder="05xxxxxxxx" autocomplete="tel">`:""}`:""}
+        ${authRole?`<label for="aWa">رقم الجوال</label><input id="aWa" required dir="ltr" inputmode="tel" placeholder="05xxxxxxxx" autocomplete="tel">`:""}`:""}
       ${authMode==="complete"?"":`<label for="aEmail">البريد الإلكتروني</label><input id="aEmail" type="email" required autocomplete="email">
       <label for="aPass">كلمة المرور</label><input id="aPass" type="password" required minlength="6" autocomplete="${authMode==="login"?"current-password":"new-password"}">`}
       <p class="err" id="aErr"></p>
@@ -873,10 +886,11 @@ function openAuth(){
 const ROLE_NAME={creator:"صانع محتوى",store:"طالب خدمة"};
 const homeFor=r=>r==="creator"?"campaigns":r==="store"?"home":"home";
 async function createProfile(uid,email,r){
-  const nm=$("#aName").value.trim(),ct=$("#aCat").value,cy=$("#aCity").value,wa=r==="creator"?$("#aWa").value.trim():"";
+  const nm=$("#aName").value.trim(),ct=$("#aCat").value,cy=$("#aCity").value,wa=$("#aWa").value.trim();
   await setDoc(doc(db,"users",uid),{role:r,email,createdAt:serverTimestamp()});
   if(r==="store"){
     await setDoc(doc(db,"stores",uid),{name:nm,cat:ct,city:cy,site:"",bio:"",updatedAt:serverTimestamp()});
+    await setDoc(doc(db,"stores",uid,"private","contact"),{wa});
   }else{
     await setDoc(doc(db,"creators",uid),{name:nm,cat:ct,city:cy,gender:"",price:0,bio:"",links:[],avail:true,updatedAt:serverTimestamp()});
     await setDoc(doc(db,"creators",uid,"private","contact"),{wa});
@@ -972,6 +986,10 @@ document.addEventListener("click",async e=>{
   if(t.closest("#whoTag")){go(isAdmin?"admin":"dashboard");return}
   const gt=t.closest("[data-gotab]"); if(gt){ownerFilter="";ctab=gt.dataset.gotab;document.querySelectorAll("[data-ctab]").forEach(x=>x.classList.toggle("on",x.dataset.ctab===ctab));go("campaigns");renderCamps();return}
   if(t.closest("[data-newcamp]")){$("#newCamp").click();return}
+  const scn=t.closest("[data-storecontact]"); if(scn){
+    try{const d=await getDoc(doc(db,"stores",scn.dataset.storecontact,"private","contact"));const box=document.getElementById(scn.dataset.box);
+      if(box)box.innerHTML=contactBtns(d.exists()?d.data().wa:"")}catch(err){toast(arErr(err))}
+    return}
   const lg=t.closest("[data-login]"); if(lg){authMode="login";authRole=lg.dataset.login;openAuth();return}
   const sw=t.closest("[data-switchrole]"); if(sw){authRole=sw.dataset.switchrole;openAuth();return}
   const at=t.closest("[data-atab]"); if(at){document.querySelectorAll("[data-atab]").forEach(x=>x.classList.toggle("on",x===at));document.querySelectorAll("[data-apanel]").forEach(p=>p.hidden=p.dataset.apanel!==at.dataset.atab);return}
@@ -984,7 +1002,7 @@ document.addEventListener("click",async e=>{
   const g=t.closest("[data-go]"); if(g){location.hash=g.dataset.go;return}
   const p=t.closest("[data-plan]"); if(p){
     if(!user){authMode="signup";authRole="store";openAuth();return}
-    if(isSub){toast("اشتراكك فعّال حتى "+subUntil.toLocaleDateString("ar-SA-u-ca-gregory"));return}
+    if(isSub){toast("حسابك مفعّل");return}
     try{await setDoc(doc(db,"subRequests",user.uid),{plan:p.dataset.plan,email:user.email,createdAt:serverTimestamp()});
       pending=p.dataset.plan;renderSub();$("#payBox").scrollIntoView({behavior:"smooth",block:"center"});
       toast("وصلنا طلبك — حوّل المبلغ وأرسل الإيصال")}catch(err){toast(arErr(err))}
