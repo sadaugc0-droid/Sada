@@ -380,6 +380,8 @@ const firebaseConfig = {
 };
 /* بريد حساب الإدارة (نفس البريد في قواعد Firestore) */
 const ADMIN_EMAIL = "sada.ugc0@gmail.com";
+/* إشعارات البريد عبر EmailJS */
+const EMAILJS = { service:"service_smpq8qs", template:"template_ghxhfbi", key:"w2FBa6jvR3Lk-JnE3" };
 /* بيانات التحويل البنكي: تُعبّأ من صفحة الإدارة */
 let BANK = { bank:"", holder:"", iban:"", wa:"" };
 /* الباقات: السعر بالريال والمدة بالأيام */
@@ -832,7 +834,7 @@ async function submitApply(e){
   e.preventDefault();
   const cid=e.target.dataset.cid;
   try{
-    await setDoc(doc(db,"campaigns",cid,"applications",user.uid),{creator:user.uid,name:myCreator.name,cat:myCreator.cat,city:myCreator.city,
+    await setDoc(doc(db,"campaigns",cid,"applications",user.uid),{creator:user.uid,email:user.email||"",name:myCreator.name,cat:myCreator.cat,city:myCreator.city,
       price:+$("#aPrice").value,msg:$("#aMsg").value.trim(),status:"pending",createdAt:serverTimestamp()});
     closeModal();toast("تم إرسال تقديمك");loadCamps();
   }catch(err){$("#apErr").textContent=arErr(err)}
@@ -865,6 +867,22 @@ async function showWa(uid){
   }catch(err){toast(arErr(err))}
 }
 
+async function notifyEmail(cid,uid,status,reason){
+  try{
+    const c=camps.find(x=>x.id===cid);
+    const a=await getDoc(doc(db,"campaigns",cid,"applications",uid));
+    const ad=a.exists()?a.data():{};
+    if(!ad.email)return false;
+    const title=c?c.title:"";
+    const params=status==="accepted"
+      ?{subject:"تم قبول عرضك في صدى ✓",message:`يسعدنا إبلاغك أن صاحب الحملة «${title}» قبل عرضك.\nادخل منصة صدى للتواصل معه مباشرة.`}
+      :{subject:"تحديث على عرضك في صدى",message:`نأسف لإبلاغك بأنه تم رفض عرضك على الحملة «${title}».\nالسبب: ${reason||"—"}\n\nتقدر تقدّم على حملات أخرى من المنصة.`};
+    const r=await fetch("https://api.emailjs.com/api/v1.0/email/send",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({service_id:EMAILJS.service,template_id:EMAILJS.template,user_id:EMAILJS.key,
+        template_params:{to_email:ad.email,to_name:ad.name||"",campaign:title,...params}})});
+    return r.ok;
+  }catch(e){console.error(e);return false}
+}
 async function deleteCampaign(cid){
   const apps=await getDocs(collection(db,"campaigns",cid,"applications"));
   for(const a of apps.docs)await deleteDoc(a.ref);
@@ -889,7 +907,8 @@ document.addEventListener("click",async e=>{
     if(!dc.classList.contains("sure")){dc.classList.add("sure");dc.textContent="تأكيد الحذف";setTimeout(()=>{if(dc.isConnected){dc.classList.remove("sure");dc.innerHTML=trashSvg}},4000);return}
     dc.disabled=true;try{await deleteCampaign(dc.dataset.delcamp);toast("تم حذف الحملة");loadCamps()}catch(err){toast(arErr(err));dc.disabled=false}return}
   const acc=t.closest("[data-accept]"); if(acc){const [cid,uid]=acc.dataset.accept.split("|");
-    try{await setDoc(doc(db,"campaigns",cid,"applications",uid),{status:"accepted"},{merge:true});toast("تم القبول");showWa(uid)}catch(err){toast(arErr(err))}return}
+    try{await setDoc(doc(db,"campaigns",cid,"applications",uid),{status:"accepted"},{merge:true});showWa(uid);
+      const sent=await notifyEmail(cid,uid,"accepted");toast(sent?"تم القبول وإرسال إيميل لصانع المحتوى":"تم القبول")}catch(err){toast(arErr(err))}return}
   const rja=t.closest("[data-rejapp]"); if(rja){const [cid,uid]=rja.dataset.rejapp.split("|");const b=$("#ap-"+uid);if(!b)return;
     b.innerHTML=`<div style="width:100%">
       <label for="rr-${esc(uid)}">سبب الرفض</label>
@@ -901,7 +920,8 @@ document.addEventListener("click",async e=>{
     const r1=$("#rr-"+uid).value, r2=$("#rt-"+uid).value.trim();
     const reason=(r1==="أخرى"&&r2)?r2:(r2?`${r1} — ${r2}`:r1);
     rjc.disabled=true;
-    try{await setDoc(doc(db,"campaigns",cid,"applications",uid),{status:"rejected",reason:reason.slice(0,250),decidedAt:serverTimestamp()},{merge:true});toast("تم رفض العرض وإشعار صانع المحتوى");openApps(cid)}catch(err){toast(arErr(err));rjc.disabled=false}
+    try{await setDoc(doc(db,"campaigns",cid,"applications",uid),{status:"rejected",reason:reason.slice(0,250),decidedAt:serverTimestamp()},{merge:true});
+      const sent=await notifyEmail(cid,uid,"rejected",reason.slice(0,250));toast(sent?"تم رفض العرض وإرسال إيميل لصانع المحتوى":"تم رفض العرض وإشعار صانع المحتوى في المنصة");openApps(cid)}catch(err){toast(arErr(err));rjc.disabled=false}
     return}
   const w=t.closest("[data-wa]"); if(w){showWa(w.dataset.wa);return}
 });
