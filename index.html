@@ -807,7 +807,8 @@ function renderCamps(){
     (!cat||c.cat===cat)&&(!city||c.city===city)&&(!plat||(c.platforms||[]).includes(plat))&&
     (!b||(b==="s"&&c.budgetMin<500)||(b==="m"&&c.budgetMin>=500&&c.budgetMin<=2000)||(b==="l"&&c.budgetMin>2000)));
   const empty=ctab==="mine"?"لم تنشر أي حملة بعد.":ctab==="applied"?"لم تقدّم أي عرض بعد.":"لا توجد حملات مفتوحة حالياً.";
-  $("#campList").innerHTML=list.length?list.map(campCard).join(""):`<div class="empty">${empty}</div>`;
+  const anyF=!!(cat||city||plat||b);
+  $("#campList").innerHTML=list.length?list.map(campCard).join(""):`<div class="empty">${anyF?"لا توجد حملات تطابق الفلاتر المختارة.":empty}${anyF?`<div style="margin-top:10px"><button class="btn brand" type="button" data-clearcf>عرض كل الحملات</button></div>`:""}</div>`;
 }
 
 function openCampForm(){
@@ -936,7 +937,9 @@ async function deleteCampaign(cid){
 }
 
 document.addEventListener("submit",e=>{if(e.target.id==="campForm")submitCamp(e);if(e.target.id==="applyForm")submitApply(e)});
-["#cfCat","#cfCity","#cfPlat","#cfBudget"].forEach(s=>$(s).addEventListener("input",renderCamps));
+["#cfCat","#cfCity","#cfPlat","#cfBudget"].forEach(s=>{$(s).value="";$(s).setAttribute("autocomplete","off");$(s).addEventListener("input",renderCamps)});
+window.addEventListener("pageshow",()=>{["#cfCat","#cfCity","#cfPlat","#cfBudget"].forEach(s=>$(s).value="");renderCamps()});
+document.addEventListener("click",e=>{if(e.target.closest("[data-clearcf]")){["#cfCat","#cfCity","#cfPlat","#cfBudget"].forEach(s=>$(s).value="");renderCamps()}});
 $("#newCamp").onclick=()=>{
   if(!user){authMode="signup";authRole="store";openAuth();return}
   if(!(isSub||isAdmin)){toast("نشر الحملات متاح للمشتركين");location.hash="pricing";return}
