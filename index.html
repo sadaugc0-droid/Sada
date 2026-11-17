@@ -867,12 +867,13 @@ async function showWa(uid){
   }catch(err){toast(arErr(err))}
 }
 
+function alert2(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),9000)}
 async function notifyEmail(cid,uid,status,reason){
   try{
     const c=camps.find(x=>x.id===cid);
     const a=await getDoc(doc(db,"campaigns",cid,"applications",uid));
     const ad=a.exists()?a.data():{};
-    if(!ad.email)return false;
+    if(!ad.email){toast("هذا العرض قديم وليس فيه إيميل صانع المحتوى — الإشعار داخل المنصة فقط");return null}
     const title=c?c.title:"";
     const params=status==="accepted"
       ?{subject:"تم قبول عرضك في صدى ✓",message:`يسعدنا إبلاغك أن صاحب الحملة «${title}» قبل عرضك.\nادخل منصة صدى للتواصل معه مباشرة.`}
@@ -880,8 +881,9 @@ async function notifyEmail(cid,uid,status,reason){
     const r=await fetch("https://api.emailjs.com/api/v1.0/email/send",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({service_id:EMAILJS.service,template_id:EMAILJS.template,user_id:EMAILJS.key,
         template_params:{to_email:ad.email,to_name:ad.name||"",campaign:title,...params}})});
-    return r.ok;
-  }catch(e){console.error(e);return false}
+    if(!r.ok){const tx=await r.text().catch(()=>"");alert2("تعذّر إرسال الإيميل ("+r.status+"): "+tx);return null}
+    return true;
+  }catch(e){console.error(e);alert2("تعذّر إرسال الإيميل: "+(e.message||e));return null}
 }
 async function deleteCampaign(cid){
   const apps=await getDocs(collection(db,"campaigns",cid,"applications"));
@@ -908,7 +910,7 @@ document.addEventListener("click",async e=>{
     dc.disabled=true;try{await deleteCampaign(dc.dataset.delcamp);toast("تم حذف الحملة");loadCamps()}catch(err){toast(arErr(err));dc.disabled=false}return}
   const acc=t.closest("[data-accept]"); if(acc){const [cid,uid]=acc.dataset.accept.split("|");
     try{await setDoc(doc(db,"campaigns",cid,"applications",uid),{status:"accepted"},{merge:true});showWa(uid);
-      const sent=await notifyEmail(cid,uid,"accepted");toast(sent?"تم القبول وإرسال إيميل لصانع المحتوى":"تم القبول")}catch(err){toast(arErr(err))}return}
+      const sent=await notifyEmail(cid,uid,"accepted");if(sent)toast("تم القبول وإرسال إيميل لصانع المحتوى")}catch(err){toast(arErr(err))}return}
   const rja=t.closest("[data-rejapp]"); if(rja){const [cid,uid]=rja.dataset.rejapp.split("|");const b=$("#ap-"+uid);if(!b)return;
     b.innerHTML=`<div style="width:100%">
       <label for="rr-${esc(uid)}">سبب الرفض</label>
@@ -921,7 +923,7 @@ document.addEventListener("click",async e=>{
     const reason=(r1==="أخرى"&&r2)?r2:(r2?`${r1} — ${r2}`:r1);
     rjc.disabled=true;
     try{await setDoc(doc(db,"campaigns",cid,"applications",uid),{status:"rejected",reason:reason.slice(0,250),decidedAt:serverTimestamp()},{merge:true});
-      const sent=await notifyEmail(cid,uid,"rejected",reason.slice(0,250));toast(sent?"تم رفض العرض وإرسال إيميل لصانع المحتوى":"تم رفض العرض وإشعار صانع المحتوى في المنصة");openApps(cid)}catch(err){toast(arErr(err));rjc.disabled=false}
+      openApps(cid);const sent=await notifyEmail(cid,uid,"rejected",reason.slice(0,250));if(sent)toast("تم رفض العرض وإرسال إيميل لصانع المحتوى")}catch(err){toast(arErr(err));rjc.disabled=false}
     return}
   const w=t.closest("[data-wa]"); if(w){showWa(w.dataset.wa);return}
 });
