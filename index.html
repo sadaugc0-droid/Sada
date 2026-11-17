@@ -684,7 +684,7 @@ function campCard(c){
     actions=app.status==="accepted"?`<span class="pill" style="background:#E3F6EA;color:#17733B">تم قبولك ✓</span><span id="sc-${esc(c.id)}"><button class="btn teal" type="button" data-storecontact="${esc(c.owner)}" data-box="sc-${esc(c.id)}">تواصل مع صاحب الحملة</button></span>`:'<span class="pill">تقدّمت — قيد المراجعة</span>';
   }else if(st==="open"){
     if(!user)actions='<button class="btn brand" type="button" data-auth-creator>سجّل كصانع محتوى للتقديم</button>';
-    else if(role==="creator")actions=isSub?`<button class="btn brand" type="button" data-apply="${esc(c.id)}">قدّم عرضك</button>`:'<span class="meta">لتقديم عرض فعّل اشتراكك <a href="#pricing" style="margin-inline-start:10px;font-weight:700;color:var(--brand)">اضغط هنا</a></span>';
+    else if(role==="creator")actions=`<button class="btn brand" type="button" data-apply="${esc(c.id)}">قدّم عرضك</button>`;
   }
   return `<article class="camp">
     <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
@@ -776,6 +776,7 @@ async function submitCamp(e){
 
 function openApply(cid){
   const c=camps.find(x=>x.id===cid);if(!c)return;
+  if(!isSub){toast("حسابك غير مفعّل");go("pricing");return}
   if(!myCreator){toast("أنشئ ملفك كصانع محتوى أولاً");location.hash="dashboard";return}
   $("#sheet").innerHTML=`
     <button class="close" data-close aria-label="إغلاق">✕</button>
