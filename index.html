@@ -17,14 +17,14 @@
 body{margin:0;font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
 a{color:inherit}
 button{font:inherit;cursor:pointer;color:inherit}
-input,select,textarea{font:inherit;width:100%;padding:.65rem .8rem;border:1px solid #ECE2D3;border-radius:12px;background:#FBF7F0;color:var(--ink)}
-input::placeholder,textarea::placeholder{color:#8A7D6B}
+input,select,textarea{font:inherit;width:100%;padding:.65rem .8rem;border:1.5px solid #1D507F;border-radius:12px;background:#fff;color:var(--ink)}
+input::placeholder,textarea::placeholder{color:#7C8B99}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--brand-soft);border-color:var(--brand)}
 label{font-size:.88rem;font-weight:600;display:block;margin:.7rem 0 .3rem}
 .wrap{max-width:1100px;margin:0 auto;padding:0 18px}
 
 /* header */
-header{position:sticky;top:0;z-index:20;background:rgba(140,208,200,.97);backdrop-filter:blur(8px);border-bottom:1px solid #6FBDB4}
+header{position:sticky;top:0;z-index:20;background:#1D507F;border-bottom:1px solid #143A5E}
 .nav{display:flex;align-items:center;gap:10px 14px;min-height:62px;flex-wrap:wrap;padding:8px 0}
 .logo{font-weight:700;font-size:1.35rem;display:flex;align-items:center;gap:8px;text-decoration:none}
 .logo img{height:40px;width:auto;display:block}.logo span{display:flex;flex-direction:column;align-items:center;text-align:center;line-height:1.05;color:var(--brand)}.logo small{font-size:.62rem;font-weight:500;color:var(--muted);white-space:nowrap;margin-top:11px;display:block}.logo{flex:none}
@@ -186,6 +186,18 @@ header .logo img{height:38px}
 .work{display:flex;align-items:center;gap:8px;background:#F6F9F8;border:1px solid var(--line);border-radius:10px;padding:6px 8px}
 .work a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:left;font-size:.85rem;color:var(--brand)}
 .work button{width:34px;height:34px;border-radius:9px;border:1px solid #F0C9BF;background:#FDF0EC;color:#B42318;display:grid;place-items:center;flex:none}
+
+.reel-wrap{margin:4px 0 18px}
+.reel-title{font-weight:700;color:var(--brand);margin:0 2px 8px;font-size:1.05rem}
+.reel{background:#1D507F;border-radius:14px;padding:16px 0;position:relative;overflow:hidden}
+.reel:before,.reel:after{content:"";position:absolute;left:0;right:0;height:8px;background:repeating-linear-gradient(90deg,transparent 0 10px,rgba(255,255,255,.85) 10px 22px,transparent 22px 32px);opacity:.9}
+.reel:before{top:4px}.reel:after{bottom:4px}
+.reel-track{display:flex;gap:12px;padding:0 12px;transition:transform .8s ease;will-change:transform}
+.frame{flex:none;width:150px;border:3px solid #5B8DB8;border-radius:10px;overflow:hidden;background:#fff;cursor:pointer;text-align:right;padding:0;font:inherit}
+.frame .fth{aspect-ratio:4/5;display:grid;place-items:center;position:relative}
+.frame .fth .play{width:42px;height:42px}
+.frame .fnm{padding:6px 8px;font-size:.85rem;font-weight:700;color:var(--brand);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frame .fct{padding:0 8px 6px;font-size:.75rem;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -244,7 +256,10 @@ header .logo img{height:38px}
     <select id="fPrice"><option value="">كل الأسعار</option><option value="eco">اقتصادي (أقل من 200)</option><option value="mid">متوسط (200–400)</option><option value="pro">احترافي (أكثر من 400)</option></select>
     <select id="fAvail"><option value="">الكل</option><option value="1">متاح فقط</option></select>
   </div>
-  <div class="chips" id="chips"></div>
+  <div class="reel-wrap" id="reelWrap" hidden>
+    <div class="reel-title">معرض صُنّاع المحتوى</div>
+    <div class="reel"><div class="reel-track" id="reel"></div></div>
+  </div>
   <div class="grid" id="grid"><div class="empty">جاري التحميل…</div></div>
 </section>
 
@@ -372,9 +387,10 @@ header .logo img{height:38px}
         <div><label for="cGender">عرّف بنفسك (اختياري)</label><input id="cGender" maxlength="30" placeholder="مثال: طالب جامعي، أم، رياضي…"></div>
       </div>
       <div class="two">
-        <div><label for="cPrice">سعر الفيديو (ريال، اختياري)</label><input id="cPrice" type="number" min="0" inputmode="numeric"></div>
-        <div><label for="cWa">واتساب</label><input id="cWa" required dir="ltr" inputmode="tel" placeholder="05xxxxxxxx"></div>
+        <div><label for="cService">الخدمة</label><input id="cService" maxlength="60" placeholder="مثال: فيديو 30 ثانية + تعديل واحد"></div>
+        <div><label for="cPrice">السعر (ريال)</label><input id="cPrice" type="number" min="0" inputmode="numeric"></div>
       </div>
+      <label for="cWa">واتساب</label><input id="cWa" required dir="ltr" inputmode="tel" placeholder="05xxxxxxxx">
       <label>نبذة قصيرة</label><textarea id="cBio" rows="2"></textarea>
       <label>روابط أعمالك (تيك توك، يوتيوب شورتس، جوجل درايف) — رابط في كل سطر</label>
       <textarea id="cLinks" rows="3" placeholder="https://www.tiktok.com/@…"></textarea>
@@ -460,7 +476,7 @@ const fill=(sel,arr)=>sel.insertAdjacentHTML("beforeend",arr.map(x=>`<option>${x
 const arErr=e=>({"auth/email-already-in-use":"البريد مسجّل مسبقاً — جرّب الدخول","auth/invalid-email":"البريد غير صحيح","auth/weak-password":"كلمة المرور قصيرة (6 أحرف على الأقل)","auth/invalid-credential":"البريد أو كلمة المرور غير صحيحة","auth/too-many-requests":"محاولات كثيرة، حاول لاحقاً","permission-denied":"ليست لديك صلاحية لهذا الإجراء"}[e.code]||("حدث خطأ: "+(e.code||e.message)));
 
 fill($("#fCity"),CITIES);fill($("#cCat"),CATS);fill($("#cCity"),CITIES);
-$("#chips").innerHTML=["الكل",...CATS].map(c=>`<button class="chip ${c==="الكل"?"on":""}" data-c="${c==="الكل"?"":c}">${c}</button>`).join("");
+
 
 const playSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
 function cardHTML(c){
@@ -483,7 +499,7 @@ function cardHTML(c){
 async function loadCreators(){
   try{
     const snap=await getDocs(query(collection(db,"creators"),orderBy("updatedAt","desc"),limit(300)));
-    creators=snap.docs.map(d=>({id:d.id,...d.data()}));
+    creators=snap.docs.map(d=>({id:d.id,...d.data()}));renderReel();
   }catch(e){console.error(e);creators=[];$("#grid").innerHTML='<div class="empty">تعذّر تحميل البيانات — تأكد من إعدادات Firebase.</div>';return}
   render();
 }
@@ -504,7 +520,7 @@ async function openProfile(id){
   const links=c.links||[];
   const vids=links.length?links.map((l,i)=>`<a class="thumb" href="${esc(l)}" target="_blank" rel="noopener" style="background:linear-gradient(${140+i*40}deg,${a},${b});text-decoration:none"><div class="play">${playSvg}</div></a>`).join(""):'<p class="meta">لم يضف أعمالاً بعد.</p>';
   const pr=+c.price||0;
-  const pk=[[`فيديو 30 ثانية + تعديل واحد`,pr],[`3 فيديوهات (خصم 15%)`,Math.round(pr*3*.85)],[`فيديو + صور منتج (5 صور)`,Math.round(pr*1.4)]];
+  const svc=(c.service||"").trim()||"فيديو إعلاني";
   let contactHTML;
   if(user&&(isSub||isAdmin||user.uid===c.id)){
     try{
@@ -524,8 +540,8 @@ async function openProfile(id){
     <p>${esc(c.bio)}</p>
     <strong>معرض الأعمال</strong>
     <div class="portfolio">${vids}</div>
-    <strong>الباقات والخدمات</strong>
-    <div class="pkgs" style="margin-top:8px">${pk.map(([t,p])=>`<div class="pkg"><span>${t}</span><span class="price">${p} ريال</span></div>`).join("")}</div>
+    <strong>الخدمات</strong>
+    <div class="pkgs" style="margin-top:8px"><div class="pkg"><span>${esc(svc)}</span><span class="price">${pr?pr+" ريال":"عند التواصل"}</span></div></div>
     <div class="lock" style="${unlocked?"background:var(--teal-soft);border-color:var(--teal)":""}">
       <strong>${unlocked?"تواصل مباشرة مع صانع المحتوى":"🔒 التواصل المباشر للمشتركين"}</strong>
       ${contactHTML}
@@ -603,7 +619,7 @@ async function loadMine(){
   if(d.exists()){
     myCreator={id:d.id,...d.data()};
     $("#cName").value=myCreator.name||"";$("#cCity").value=myCreator.city||CITIES[0];$("#cCat").value=myCreator.cat||CATS[0];
-    $("#cGender").value=myCreator.gender||"";$("#cPrice").value=myCreator.price||"";$("#cBio").value=myCreator.bio||"";
+    $("#cGender").value=myCreator.gender||"";$("#cPrice").value=myCreator.price||"";$("#cService").value=myCreator.service||"";$("#cBio").value=myCreator.bio||"";
     $("#cLinks").value=(myCreator.links||[]).join("\n");dashAvail=myCreator.avail?1:0;renderWorks();
     document.querySelectorAll("#availToggle button").forEach(b=>b.classList.toggle("on",+b.dataset.a===dashAvail));
     try{const p=await getDoc(doc(db,"creators",user.uid,"private","contact"));if(p.exists())$("#cWa").value=p.data().wa||""}catch(e){}
@@ -693,7 +709,7 @@ function storeCard(s,preview){
   const open=camps.filter(c=>c.owner===s.id&&campState(c)==="open").length;
   const site=safeUrl(s.site), insta=safeUrl(s.insta);
   return `<article class="store-card">
-    <div class="row"><div class="store-av" aria-hidden="true">${esc(initials(s.name))}</div>
+    <div class="row">
       <div><div class="name">${esc(s.name)}${roleTag("store",s.no)}</div><div class="meta">${esc(s.cat)} · ${esc(s.city)}</div></div></div>
     ${s.bio?`<p style="margin:0" class="meta">${esc(s.bio)}</p>`:""}
     ${site||insta?`<div class="slinks">${site?`<a href="${esc(site)}" target="_blank" rel="noopener">الموقع / الحساب</a>`:""}${insta?`<a href="${esc(insta)}" target="_blank" rel="noopener">الحساب</a>`:""}</div>`:""}
@@ -1116,7 +1132,17 @@ window.addEventListener("hashchange",()=>route());
 
 /* ---------- events ---------- */
 ["#fQ","#fCity","#fPrice","#fAvail"].forEach(s=>$(s).addEventListener("input",render));
-$("#chips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;activeCat=b.dataset.c;document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x===b));render()});
+let reelI=0,reelT=null;
+function renderReel(){
+  const L=creators.filter(c=>(c.links||[]).length);
+  $("#reelWrap").hidden=!L.length;
+  $("#reel").innerHTML=[...L,...L].map(c=>{const [a,b]=col();return `<button class="frame" type="button" data-open="${esc(c.id)}"><div class="fth" style="background:linear-gradient(160deg,${a},${b})"><div class="play">${playSvg}</div></div><div class="fnm">${esc(c.name)}</div><div class="fct">${esc(c.cat)} · ${(c.links||[]).length} فيديو</div></button>`}).join("");
+  reelI=0;$("#reel").style.transition="none";$("#reel").style.transform="translateX(0)";
+  clearInterval(reelT);if(L.length<2)return;
+  reelT=setInterval(()=>{const tr=$("#reel");if(!tr.offsetParent)return;const step=162;reelI++;
+    tr.style.transition="transform .8s ease";tr.style.transform=`translateX(${reelI*step}px)`;
+    if(reelI>=L.length)setTimeout(()=>{reelI=0;tr.style.transition="none";tr.style.transform="translateX(0)"},850)},2800);
+}
 $("#authBtn").onclick=async()=>{setGuest(false);if(user){await signOut(auth);toast("تم تسجيل الخروج")}renderSub();location.hash="welcome"};
 function closeMenu(){$("#pMenu").hidden=true;$("#pBtn").setAttribute("aria-expanded","false")}
 $("#pBtn").onclick=e=>{e.stopPropagation();const m=$("#pMenu");m.hidden=!m.hidden;$("#pBtn").setAttribute("aria-expanded",String(!m.hidden))};
@@ -1211,7 +1237,7 @@ $("#crForm").addEventListener("submit",async e=>{
   e.preventDefault();
   if(!(user&&role==="creator"))return;
   const links=$("#cLinks").value.split("\n").map(s=>s.trim()).filter(s=>/^https?:\/\//.test(s)).slice(0,10);
-  const data={name:$("#cName").value.trim(),city:$("#cCity").value,cat:$("#cCat").value,gender:$("#cGender").value.trim().slice(0,30),price:+$("#cPrice").value||0,bio:$("#cBio").value.trim().slice(0,400),links,avail:!!dashAvail,updatedAt:serverTimestamp()};
+  const data={name:$("#cName").value.trim(),city:$("#cCity").value,cat:$("#cCat").value,gender:$("#cGender").value.trim().slice(0,30),price:+$("#cPrice").value||0,service:$("#cService").value.trim().slice(0,60),bio:$("#cBio").value.trim().slice(0,400),links,avail:!!dashAvail,updatedAt:serverTimestamp()};
   try{
     await setDoc(doc(db,"creators",user.uid),data);
     await setDoc(doc(db,"creators",user.uid,"private","contact"),{wa:$("#cWa").value.trim()});
