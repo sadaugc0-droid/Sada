@@ -193,7 +193,7 @@ header .logo img{height:38px}
 .reel:before,.reel:after{content:"";position:absolute;left:0;right:0;height:8px;background:repeating-linear-gradient(90deg,transparent 0 10px,rgba(255,255,255,.85) 10px 22px,transparent 22px 32px);opacity:.9}
 .reel:before{top:4px}.reel:after{bottom:4px}
 .reel-track{display:flex;gap:12px;padding:0 12px;transition:transform .8s ease;will-change:transform}
-.frame{flex:none;width:150px;border:3px solid #5B8DB8;border-radius:10px;overflow:hidden;background:#fff;cursor:pointer;text-align:right;padding:0;font:inherit}
+.frame{display:block;flex:none;width:150px;border:3px solid #5B8DB8;border-radius:10px;overflow:hidden;background:#fff;cursor:pointer;text-align:right;padding:0;font:inherit}
 .frame .fth{aspect-ratio:4/5;display:grid;place-items:center;position:relative}
 .frame .fth .play{width:42px;height:42px}
 .frame .fnm{padding:6px 8px;font-size:.85rem;font-weight:700;color:var(--brand);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1134,9 +1134,9 @@ window.addEventListener("hashchange",()=>route());
 ["#fQ","#fCity","#fPrice","#fAvail"].forEach(s=>$(s).addEventListener("input",render));
 let reelI=0,reelT=null;
 function renderReel(){
-  const L=creators.filter(c=>(c.links||[]).length);
+  const L=[];creators.forEach(c=>(c.links||[]).forEach(l=>{const u=safeUrl(l);if(u)L.push({c,u})}));
   $("#reelWrap").hidden=!L.length;
-  $("#reel").innerHTML=[...L,...L].map(c=>{const [a,b]=col();return `<button class="frame" type="button" data-open="${esc(c.id)}"><div class="fth" style="background:linear-gradient(160deg,${a},${b})"><div class="play">${playSvg}</div></div><div class="fnm">${esc(c.name)}</div><div class="fct">${esc(c.cat)} · ${(c.links||[]).length} فيديو</div></button>`}).join("");
+  $("#reel").innerHTML=[...L,...L].map(({c,u})=>{const [a,b]=col();return `<a class="frame" href="${esc(u)}" target="_blank" rel="noopener" style="text-decoration:none"><div class="fth" style="background:linear-gradient(160deg,${a},${b})"><div class="play">${playSvg}</div></div><div class="fnm">${esc(c.name)}</div><div class="fct">${esc(c.cat)} · ${esc(c.city)}</div></a>`}).join("");
   reelI=0;$("#reel").style.transition="none";$("#reel").style.transform="translateX(0)";
   clearInterval(reelT);if(L.length<2)return;
   reelT=setInterval(()=>{const tr=$("#reel");if(!tr.offsetParent)return;const step=162;reelI++;
